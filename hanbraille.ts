@@ -5,6 +5,9 @@ export class HanBraille extends Braille {
         for (let i of HanBraille.mapping) {
             d = d.replace(new RegExp(i[0], 'ugim'), i[1][0]);
         }
+        // out-of-scope conversion below
+        d = d.replace(/\s/ugim, this.DotsToUni());
+        d = d.replace(/[^\u2800-\u28ff]/ugim, "");
         return d;
     }
     static mapping: Map<string, string[]> = new Map([
@@ -283,8 +286,5 @@ export class HanBraille extends Braille {
         ////제28항; TODO: This needs to go *before* the syllable, unlike UCS hangul
         ['\u302e', [this.BraiToUCS([4,5,6],[2])]], //거성 1점
         ['\u302f', [this.BraiToUCS([4,5,6],[1,3])]], //상성 2점
-        //misc.
-        ['\\s', [this.DotsToUni()]], //공백
-        ['[^\u2800-\u28ff]', [""]], //unsupported
     ]);
 }
