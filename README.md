@@ -6,21 +6,27 @@ Supports modern Hangul as well as common obsolete Hangul jamo (옛한글), inclu
 
 ## Initialization
 
-`npm i && tsc`
+```console
+npm i && tsc
+```
 
 ## Command-line usage
 
-    $ node ./hanbraille.js "여기서 올라가라"
-    ⠱⠈⠕⠠⠎⠀⠥⠂⠐⠣⠫⠐⠣
-    $ node ./hanbraille.js "여기서 구멍을 파라"
-    ⠱⠈⠕⠠⠎⠀⠈⠍⠑⠎⠶⠮⠀⠙⠐⠣
+```console
+$ node ./hanbraille.js "여기서 올라가라"
+⠱⠈⠕⠠⠎⠀⠥⠂⠐⠣⠫⠐⠣
+$ node ./hanbraille.js "여기서 구멍을 파라"
+⠱⠈⠕⠠⠎⠀⠈⠍⠑⠎⠶⠮⠀⠙⠐⠣
+```
 
 - The above quotes are from _Pokémon ORAS_, known for remarkable usage of braille.
 
-    $ echo "ᄃᆡᄀᆡ 하나님이 셰샹ᄋᆞᆯ 사랑ᄒᆞ여 그 외아달ᄋᆞᆯ 주어
-    \> 무론 밋ᄂᆞᆫ 쟈ᄂᆞᆫ 망ᄒᆞ물 면ᄒᆞ고 길이 살물 엇게 ᄒᆞ미니" \| node ./hanbraille.js
-    ⠊⠐⠼⠗⠈⠐⠼⠗⠀⠚⠉⠉⠕⠢⠕⠀⠠⠌⠠⠜⠶⠐⠼⠂⠀⠇⠐⠣⠶⠚⠐⠼⠱⠀⠈⠪⠀⠽⠣⠊⠂⠐⠼⠂⠀⠨⠍⠎
-    ⠑⠍⠐⠷⠀⠑⠕⠄⠉⠐⠼⠒⠀⠨⠜⠉⠐⠼⠒⠀⠑⠶⠚⠐⠼⠑⠯⠀⠑⠡⠚⠐⠼⠈⠥⠀⠈⠕⠂⠕⠀⠇⠂⠑⠯⠀⠎⠄⠈⠝⠀⠚⠐⠼⠑⠕⠉⠕
+```console
+$ echo "ᄃᆡᄀᆡ 하나님이 셰샹ᄋᆞᆯ 사랑ᄒᆞ여 그 외아달ᄋᆞᆯ 주어
+\> 무론 밋ᄂᆞᆫ 쟈ᄂᆞᆫ 망ᄒᆞ물 면ᄒᆞ고 길이 살물 엇게 ᄒᆞ미니" \| node ./hanbraille.js
+⠊⠐⠼⠗⠈⠐⠼⠗⠀⠚⠉⠉⠕⠢⠕⠀⠠⠌⠠⠜⠶⠐⠼⠂⠀⠇⠐⠣⠶⠚⠐⠼⠱⠀⠈⠪⠀⠽⠣⠊⠂⠐⠼⠂⠀⠨⠍⠎
+⠑⠍⠐⠷⠀⠑⠕⠄⠉⠐⠼⠒⠀⠨⠜⠉⠐⠼⠒⠀⠑⠶⠚⠐⠼⠑⠯⠀⠑⠡⠚⠐⠼⠈⠥⠀⠈⠕⠂⠕⠀⠇⠂⠑⠯⠀⠎⠄⠈⠝⠀⠚⠐⠼⠑⠕⠉⠕
+```
 
 - John 3:16, 《예수셩교젼셔》 (1887).
 
