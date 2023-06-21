@@ -8,7 +8,7 @@ export class HanBraille extends Braille {
         // out-of-scope conversion below
         d = d.replace(/ /ugim, this.DotsToUni());
         d = d.replace(/\t/ugim, this.BraiToUCS([],[],[],[]));
-        d = d.replace(/[^\u2800-\u28ff]/ugim, "");
+        d = d.replace(/[^\n\u2800-\u28ff]/ugim, "");
         return d;
     }
     static mapping: Map<string, string[]> = new Map([
