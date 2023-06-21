@@ -21,6 +21,7 @@ Supports modern Hangul as well as common obsolete Hangul jamo (옛한글), inclu
     > 무론 밋ᄂᆞᆫ 쟈ᄂᆞᆫ 망ᄒᆞ물 면ᄒᆞ고 길이 살물 엇게 ᄒᆞ미니" | node ./hanbraille.js
     ⠊⠐⠼⠗⠈⠐⠼⠗⠀⠚⠉⠉⠕⠢⠕⠀⠠⠌⠠⠜⠶⠐⠼⠂⠀⠇⠐⠣⠶⠚⠐⠼⠱⠀⠈⠪⠀⠽⠣⠊⠂⠐⠼⠂⠀⠨⠍⠎
     ⠑⠍⠐⠷⠀⠑⠕⠄⠉⠐⠼⠒⠀⠨⠜⠉⠐⠼⠒⠀⠑⠶⠚⠐⠼⠑⠯⠀⠑⠡⠚⠐⠼⠈⠥⠀⠈⠕⠂⠕⠀⠇⠂⠑⠯⠀⠎⠄⠈⠝⠀⠚⠐⠼⠑⠕⠉⠕
+
 - John 3:16, 《예수셩교젼셔》 (1887).
 
 ## Todo
