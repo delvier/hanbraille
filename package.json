@@ -1,0 +1,25 @@
+{
+  "name": "hanbraille",
+  "version": "0.0.0",
+  "description": "Hangul Braille Converter",
+  "main": "hanbraille.js",
+  "scripts": {
+    "test": "node hanbraille.js \"다람쥐 헌 쳇바퀴에 타고파\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/delvier/hanbraille.git"
+  },
+  "keywords": [
+    "braille"
+  ],
+  "author": "delvier",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/delvier/hanbraille/issues"
+  },
+  "homepage": "https://github.com/delvier/hanbraille#readme",
+  "devDependencies": {
+    "@types/node": "^20.3.1"
+  }
+}

@@ -6,7 +6,8 @@ export class HanBraille extends Braille {
             d = d.replace(new RegExp(i[0], 'ugim'), i[1][0]);
         }
         // out-of-scope conversion below
-        d = d.replace(/\s/ugim, this.DotsToUni());
+        d = d.replace(/ /ugim, this.DotsToUni());
+        d = d.replace(/\t/ugim, this.BraiToUCS([],[],[],[]));
         d = d.replace(/[^\u2800-\u28ff]/ugim, "");
         return d;
     }
@@ -287,4 +288,23 @@ export class HanBraille extends Braille {
         ['\u302e', [this.BraiToUCS([4,5,6],[2])]], //거성 1점
         ['\u302f', [this.BraiToUCS([4,5,6],[1,3])]], //상성 2점
     ]);
+}
+
+if (process.argv.length < 2) {
+    console.log(`Usage: node ${process.argv[1]} "Some string"`);
+    process.exit(1);
+}
+let text = process.argv[2] ?? "다람쥐 헌 쳇바퀴에 타고파";
+if (!process.stdin.isTTY) {
+    process.stdin.setEncoding('utf8');
+    process.stdin.on('data', (chunk) => {
+        text = chunk.toString().replace(/\r\n/g, '\n');
+    })
+    .on('end', () => {
+        let out = HanBraille.HangToBrai(text);
+        console.log(out);
+    });
+} else {
+    let out = HanBraille.HangToBrai(text);
+    console.log(out);
 }
