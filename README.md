@@ -8,10 +8,10 @@ Hangul Braille Converter / 한글 점자 변환기
 
 ## Command-line usage
 
-`$ node ./hanbraille.js "여기서 올라가라"`
-`⠱⠈⠕⠠⠎⠀⠥⠂⠐⠣⠫⠐⠣`
-`$ echo "여기서 구멍을 파라" | node ./hanbraille.js`
-`⠱⠈⠕⠠⠎⠀⠈⠍⠑⠎⠶⠮⠀⠙⠐⠣`
+    $ node ./hanbraille.js "여기서 올라가라"
+    ⠱⠈⠕⠠⠎⠀⠥⠂⠐⠣⠫⠐⠣`
+    $ echo "여기서 구멍을 파라" | node ./hanbraille.js
+    ⠱⠈⠕⠠⠎⠀⠈⠍⠑⠎⠶⠮⠀⠙⠐⠣`
 
 - The example quotes are from _Pokémon ORAS_, known for remarkable usage of braille.
 
