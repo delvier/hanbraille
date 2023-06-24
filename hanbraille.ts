@@ -2,17 +2,56 @@ import { Braille } from "./braille";
 export class HanBraille extends Braille {
     static HangToBrai(hang: string): string {
         let d: string = hang.normalize('NFD');
-        for (let i of HanBraille.mapping) {
+        for (let i of this.mapping) {
+            d = d.replace(new RegExp(i[0], 'ugim'), i[1][0]);
+        }
+        for (let i of this.UEB) {
             d = d.replace(new RegExp(i[0], 'ugim'), i[1][0]);
         }
         // out-of-scope conversion below
         d = d.replace(/ /ugim, this.DotsToUni());
         d = d.replace(/\t/ugim, this.BraiToUCS([],[],[],[]));
         d = d.replace(/[^\n\u2800-\u28ff]/ugim, "");
+        if (asciiMode) {
+            d =  this.BraiUCSToASCII(d);
+        }
         return d;
     }
-    static mapping: Map<string, string[]> = new Map([
+    private static mapping: Map<string, string[]> = new Map([
+        /* Code switching */
+        //제4장: 로마자 (TODO)
+        ['([A-Za-z@#^&][\u0020-\u007f]*)', [this.DotsToUni(3,5,6) + '$1' + this.DotsToUni(2,5,6)]],
+        //제5장: 숫자
+        ["([0-9'][0-9:\\-,·.]*)", [this.DotsToUni(3,4,5,6)  + '$1']],
+        ['([0-9])(?=[\u1102\u1103\u1106\u110f-\u1112]|\u110b\u116e\u11ab)', ['$1' + this.DotsToUni()]], //number before ㄴㄷㅁㅋㅌㅍㅎ운
+        ['([0-9])(?=[₩￦¢$£¥€])', ['$1' + this.DotsToUni(3,5,6)]], //cf. 제72항
+        ////제39항-3: shorthand prohibition
+        ['(?<=[0-9]-)나'.normalize('NFD'), [this.BraiToUCS([1,4],[1,2,6])]],
+        ['(?<=[0-9]-)다'.normalize('NFD'), [this.BraiToUCS([2,4],[1,2,6])]],
+        ['(?<=[0-9]-)마'.normalize('NFD'), [this.BraiToUCS([1,5],[1,2,6])]],
+        ['(?<=[0-9]-)카'.normalize('NFD'), [this.BraiToUCS([1,2,4],[1,2,6])]],
+        ['(?<=[0-9]-)타'.normalize('NFD'), [this.BraiToUCS([1,2,5],[1,2,6])]],
+        ['(?<=[0-9]-)파'.normalize('NFD'), [this.BraiToUCS([1,4,5],[1,2,6])]],
+        ['(?<=[0-9]-)하'.normalize('NFD'), [this.BraiToUCS([2,4,5],[1,2,6])]],
+        ////제47항-*
+        ['(?<=[0-9]),(?=[0-9])', [this.DotsToUni(2)]],
         /* Special cases */
+        //제63~66항: omission
+        ['(×+)', [this.DotsToUni(4,5,6) + '$1' + this.DotsToUni(1,2,3)]],
+        ['×', [this.DotsToUni(1,3,4,6)]],
+        ['(○+)', [this.DotsToUni(4,5,6) + '$1' + this.DotsToUni(1,2,3)]],
+        ['○', [this.DotsToUni(3,5,6)]],
+        ['(△+)', [this.DotsToUni(4,5,6) + '$1' + this.DotsToUni(1,2,3)]],
+        ['△', [this.DotsToUni(3,4,6)]],
+        ['(□+)', [this.DotsToUni(4,5,6) + '$1' + this.DotsToUni(1,2,3)]],
+        ['□', [this.DotsToUni(2,3,5,6)]],
+        //제52~58항: opening and closing
+        ['"(.*)"', [this.DotsToUni(2,3,6) + '$1' + this.DotsToUni(3,5,6)]],
+        ["'(.*)'", [this.BraiToUCS([6],[2,3,6]) + '$1' + this.BraiToUCS([3,5,6],[3])]],
+        //제28항; This needs to go *before* the syllable, unlike UCS hangul
+        ////always first because this changes character order; ignored if not related to hangul syllable
+        ['([\u1100-\u115f][\u1160-\u11a7][\u11a8-\u11ff]?)\u302e', [this.BraiToUCS([4,5,6],[2]) + '$1']], //거성 1점
+        ['([\u1100-\u115f][\u1160-\u11a7][\u11a8-\u11ff]?)\u302f', [this.BraiToUCS([4,5,6],[1,3]) + '$1']], //상성 2점
         //제7절: Abbr. Only at the beginning of the line, or after a whitespace or a punctuation
         ['(?<=^|\\s|\\p{P})그래서'.normalize('NFD'), [this.BraiToUCS([1],[2,3,4])]], //그래서
         ['(?<=^|\\s|\\p{P})그러나'.normalize('NFD'), [this.BraiToUCS([1],[1,2])]], //그러나
@@ -284,17 +323,68 @@ export class HanBraille extends Braille {
         ['\u1194', [this.BraiToUCS([4,5,6],[1,4,6],[1,3,5])]], //ㆌ
         ['\u1191', [this.BraiToUCS([4,5,6],[1,4,6],[1,5,6])]], //ㆊ
         ['\u1192', [this.BraiToUCS([4,5,6],[1,4,6],[3,4])]], //ㆋ
-        ////제28항; TODO: This needs to go *before* the syllable, unlike UCS hangul
-        ['\u302e', [this.BraiToUCS([4,5,6],[2])]], //거성 1점
-        ['\u302f', [this.BraiToUCS([4,5,6],[1,3])]], //상성 2점
+        //제12절: 문장 부호
+        ['\\.', [this.DotsToUni(2,5,6)]],
+        ['\\?', [this.DotsToUni(2,3,6)]],
+        ['!', [this.DotsToUni(2,3,5)]],
+        [',', [this.DotsToUni(5)]],
+        ['·', [this.BraiToUCS([5],[2,3])]],
+        [':', [this.BraiToUCS([5],[2])]],
+        [';', [this.BraiToUCS([5,6],[2,3])]],
+        ['/', [this.BraiToUCS([4,5,6],[3,4])]],
+        ['“', [this.DotsToUni(2,3,6)]],
+        ['”', [this.DotsToUni(3,5,6)]],
+        ["‘", [this.BraiToUCS([6],[2,3,6])]],
+        ["’", [this.BraiToUCS([3,5,6],[3])]],
+        ['\\(', [this.BraiToUCS([2,3,6],[3])]],
+        ['\\)', [this.BraiToUCS([6],[3,5,6])]],
+        ['\\{', [this.BraiToUCS([2,3,6],[2])]],
+        ['\\}', [this.BraiToUCS([5],[3,5,6])]],
+        ['\\[', [this.BraiToUCS([2,3,6],[2,3])]],
+        ['\\]', [this.BraiToUCS([5,6],[3,5,6])]],
+        ['『', [this.BraiToUCS([5,6],[2,3,6])]],
+        ['』', [this.BraiToUCS([3,5,6],[2,3])]],
+        ['《', [this.BraiToUCS([5,6],[2,3,6])]],
+        ['》', [this.BraiToUCS([3,5,6],[2,3])]],
+        ['「', [this.BraiToUCS([5],[2,3,6])]],
+        ['」', [this.BraiToUCS([3,5,6],[2])]],
+        ['〈', [this.BraiToUCS([5],[2,3,6])]],
+        ['〉', [this.BraiToUCS([3,5,6],[2])]],
+        ['-', [this.DotsToUni(3,6)]],
+        ['—', [this.BraiToUCS([3,6],[3,6])]],
+        ['~', [this.BraiToUCS([3,6],[3,6])]],
+        ['……', [this.BraiToUCS([6],[6],[6])]],
+        ['…', [this.BraiToUCS([6],[6],[6])]],
+        ['\\*', [this.BraiToUCS([3,5],[3,5])]],
+        ['※', [this.BraiToUCS([3,5],[3,5])
+                ,this.BraiToUCS([4,5,6],[3,5])]], //Alternative conversion
+        ["'", [this.DotsToUni(3)]],
+        ['〃', [this.BraiToUCS([5,6],[2,3])]],
+        ['ː', [this.BraiToUCS([6],[3])]],
+        ['₩', [this.BraiToUCS([4],[2,4,5,6])]],
+        ['￦', [this.BraiToUCS([4],[2,4,5,6])]],
+        ['¢', [this.BraiToUCS([4],[1,4])]],
+        ['\\$', [this.BraiToUCS([4],[1,4,5])]],
+        ['£', [this.BraiToUCS([4],[1,2,3])]],
+        ['¥', [this.BraiToUCS([4],[1,3,4,5,6])]],
+        ['€', [this.BraiToUCS([4],[1,5])]],
     ]);
 }
 
-if (process.argv.length < 2) {
+let help: string = 
+`HanBraille - Hangul Braille Converter
+`;
+
+var asciiMode: boolean = false;
+
+if (process.argv.length < 3) {
     console.log(`Usage: node ${process.argv[1]} "Some string"`);
     process.exit(1);
 }
-let text = process.argv[2] ?? "다람쥐 헌 쳇바퀴에 타고파";
+if (process.argv.includes("-a")) {
+    asciiMode = true;
+}
+let text = process.argv[process.argv.length - 1] ?? "다람쥐 헌 쳇바퀴에 타고파";
 if (!process.stdin.isTTY) {
     process.stdin.setEncoding('utf8');
     process.stdin.on('data', (chunk) => {
