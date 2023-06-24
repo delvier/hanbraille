@@ -376,34 +376,3 @@ export class HanBraille extends Braille {
         ['€', [HanBraille.BraiToUCS([4],[1,5])]],
     ]);
 }
-
-let help: string = 
-`HanBraille - Hangul Braille Converter
-Usage: node ${process.argv[1]} [-a] "Some string"
--a: prints results as Braille ASCII. Compatible with BRF.
-`;
-
-if (process.argv.length < 3) {
-    console.log(help);
-    process.exit(1);
-}
-var hanbraille: HanBraille;
-let ascii: boolean = false;
-if (process.argv.includes("-a")) {
-    ascii = true;
-}
-hanbraille = new HanBraille(ascii);
-let text = process.argv[process.argv.length - 1] ?? "다람쥐 헌 쳇바퀴에 타고파";
-if (!process.stdin.isTTY) {
-    process.stdin.setEncoding('utf8');
-    process.stdin.on('data', (chunk) => {
-        text = chunk.toString().replace(/\r\n/g, '\n');
-    })
-    .on('end', () => {
-        let out = hanbraille.HangToBrai(text);
-        console.log(out);
-    });
-} else {
-    let out = hanbraille.HangToBrai(text);
-    console.log(out);
-}

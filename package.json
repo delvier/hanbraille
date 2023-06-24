@@ -4,7 +4,8 @@
   "description": "Hangul Braille Converter",
   "main": "hanbraille.js",
   "scripts": {
-    "test": "node hanbraille.js \"다람쥐 헌 쳇바퀴에 타고파\""
+    "test": "node exec.js",
+    "build": "npm i && tsc && npm link"
   },
   "repository": {
     "type": "git",
@@ -21,5 +22,8 @@
   "homepage": "https://github.com/delvier/hanbraille#readme",
   "devDependencies": {
     "@types/node": "^20.3.1"
+  },
+  "bin": {
+    "hanbraille" : "exec.js"
   }
 }
