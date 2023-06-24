@@ -2,9 +2,9 @@
   "name": "hanbraille",
   "version": "0.0.0",
   "description": "Hangul Braille Converter",
-  "main": "hanbraille.js",
+  "main": "out/exec.js",
   "scripts": {
-    "test": "node exec.js",
+    "test": "node out/exec.js",
     "build": "npm i && tsc && npm link"
   },
   "repository": {
@@ -24,6 +24,6 @@
     "@types/node": "^20.3.1"
   },
   "bin": {
-    "hanbraille" : "exec.js"
+    "hanbraille" : "out/exec.js"
   }
 }
