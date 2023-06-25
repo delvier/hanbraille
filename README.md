@@ -7,11 +7,11 @@ Supports modern Hangul as well as common obsolete Hangul jamo (옛한글), inclu
 ## Initialization
 
 ```console
-$ npm run build
-$ npm ln
+npm run build
+npm ln
 ```
 
-If `npm ln` emits a permission error, one may consider reconfiguring npm's global directory (cf. [npm Docs](https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally)).
+If `npm ln` emits a permission error, one may consider reconfiguring npm's global directory (cf. [npm Docs](https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally)). If this solution is undesirable, one may skip `npm ln` and run `node out/exec.js` instead of `hanbraille`.
 
 ## Command-line usage
 
