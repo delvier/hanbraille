@@ -5,7 +5,7 @@
   "main": "out/exec.js",
   "scripts": {
     "test": "node out/exec.js",
-    "build": "npm i && tsc && npm link"
+    "build": "npm i && tsc"
   },
   "repository": {
     "type": "git",
@@ -20,10 +20,13 @@
     "url": "https://github.com/delvier/hanbraille/issues"
   },
   "homepage": "https://github.com/delvier/hanbraille#readme",
-  "devDependencies": {
-    "@types/node": "^20.3.1"
-  },
   "bin": {
-    "hanbraille" : "out/exec.js"
+    "hanbraille": "out/exec.js"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "typescript": "^5.1.3",
+    "@types/node": "^20.3.1"
   }
 }

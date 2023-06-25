@@ -7,8 +7,11 @@ Supports modern Hangul as well as common obsolete Hangul jamo (옛한글), inclu
 ## Initialization
 
 ```console
-npm run build
+$ npm run build
+$ npm ln
 ```
+
+If `npm ln` emits a permission error, one may consider reconfiguring npm's global directory (cf. [npm Docs](https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally)).
 
 ## Command-line usage
 
