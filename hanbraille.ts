@@ -9,15 +9,15 @@ export class HanBraille extends Braille {
     HangToBrai(hang: string): string {
         let d: string = hang.normalize('NFD');
         for (let i of this.#mapping) {
-            d = d.replace(new RegExp(i[0], 'ugim'), i[1][0]);
+            d = d.replace(new RegExp(i[0], 'gmu'), i[1][0]);
         }
         for (let i of this.UEB) {
-            d = d.replace(new RegExp(i[0], 'ugim'), i[1][0]);
+            d = d.replace(new RegExp(i[0], 'gmu'), i[1][0]);
         }
         // out-of-scope conversion below
-        d = d.replace(/ /ugim, Braille.DotsToUni());
-        d = d.replace(/\t/ugim, Braille.BraiToUCS([],[],[],[]));
-        d = d.replace(/[^\n\u2800-\u28ff]/ugim, "");
+        d = d.replace(/ /gmu, Braille.DotsToUni());
+        d = d.replace(/\t/gmu, Braille.BraiToUCS([],[],[],[]));
+        d = d.replace(/[^\n\u2800-\u28ff]/gmu, "");
         if (this.asciiMode) {
             d =  Braille.BraiUCSToASCII(d);
         }
@@ -364,7 +364,7 @@ export class HanBraille extends Braille {
         ['\\*', [HanBraille.BraiToUCS([3,5],[3,5])]],
         ['※', [HanBraille.BraiToUCS([3,5],[3,5])
                 ,HanBraille.BraiToUCS([4,5,6],[3,5])]], //Alternative conversion
-        ["'", [HanBraille.DotsToUni(3)]],
+        ["'", [HanBraille.DotsToUni(3)]], //Apostrophe
         ['〃', [HanBraille.BraiToUCS([5,6],[2,3])]],
         ['ː', [HanBraille.BraiToUCS([6],[3])]],
         ['₩', [HanBraille.BraiToUCS([4],[2,4,5,6])]],

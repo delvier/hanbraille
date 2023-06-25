@@ -46,7 +46,9 @@ $ echo "ᄃᆡᄀᆡ 하나님이 셰샹ᄋᆞᆯ 사랑ᄒᆞ여 그 외아달�
 
 ## Todo
 
-- Cover all rules defined in "한국 점자 규정", including support for punctuations, Latin alphabet and numbers
+- **Algorithm with better performance**
+- Cover all rules defined in "한국 점자 규정"
+  - Implement Unified English Braille for Latin alphabet blended with Hangul  
 - Conversion options for some characters which have alternatives
 - Reverse conversion
 - Line length-concerning conversion
