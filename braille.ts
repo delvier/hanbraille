@@ -37,8 +37,74 @@ export class Braille {
         }
         return o;
     }
+    readonly UEB2: Map<string, string[]> = new Map([
+        //condition is rather complex, how to compromise
+        ['but', [Braille.DotsToUni(1,2)]],
+        ['can', [Braille.DotsToUni(1,4)]],
+        ['do', [Braille.DotsToUni(1,4,5)]],
+        ['every', [Braille.DotsToUni(1,5)]],
+        ['from', [Braille.DotsToUni(1,2,4)]],
+        ['go', [Braille.DotsToUni(1,2,4,5)]],
+        ['have', [Braille.DotsToUni(1,2,5)]],
+        ['just', [Braille.DotsToUni(2,4,5)]],
+        ['knowledge', [Braille.DotsToUni(1,3)]],
+        ['like', [Braille.DotsToUni(1,2,3)]],
+        ['more', [Braille.DotsToUni(1,3,4)]],
+        ['not', [Braille.DotsToUni(1,3,4,5)]],
+        ['people', [Braille.DotsToUni(1,2,3,4)]],
+        ['quite', [Braille.DotsToUni(1,2,3,4,5)]],
+        ['rather', [Braille.DotsToUni(1,2,3,5)]],
+        ['so', [Braille.DotsToUni(2,3,4)]],
+        ['that', [Braille.DotsToUni(2,3,4,5)]],
+        ['us', [Braille.DotsToUni(1,3,6)]],
+        ['very', [Braille.DotsToUni(1,2,3,6)]],
+        ['will', [Braille.DotsToUni(2,4,5,6)]],
+        ['it', [Braille.DotsToUni(1,3,4,6)]],
+        ['you', [Braille.DotsToUni(1,3,4,5,6)]],
+        ['as', [Braille.DotsToUni(1,3,5,6)]],
+        //
+        ['child', [Braille.DotsToUni(1,6)]],
+        ['shall', [Braille.DotsToUni(1,4,6)]],
+        ['this', [Braille.DotsToUni(1,4,5,6)]],
+        ['which', [Braille.DotsToUni(1,5,6)]],
+        ['out', [Braille.DotsToUni(1,2,5,6)]],
+        ['still', [Braille.DotsToUni(3,4)]],
+        ['and', [Braille.DotsToUni(1,2,3,5,6)]],
+        ['for', [Braille.DotsToUni(1,2,3,4,5,6)]],
+        ['of', [Braille.DotsToUni(1,2,3,5,6)]],
+        ['the', [Braille.DotsToUni(2,3,4,6)]],
+        ['with', [Braille.DotsToUni(2,3,4,5,6)]],
+        //
+        ['ch', [Braille.DotsToUni(1,6)]],
+        ['gh', [Braille.DotsToUni(1,2,6)]],
+        ['sh', [Braille.DotsToUni(1,4,6)]],
+        ['th', [Braille.DotsToUni(1,4,5,6)]],
+        ['wh', [Braille.DotsToUni(1,5,6)]],
+        ['ed', [Braille.DotsToUni(1,2,4,6)]],
+        ['er', [Braille.DotsToUni(1,2,4,5,6)]],
+        ['ou', [Braille.DotsToUni(1,2,5,6)]],
+        ['ow', [Braille.DotsToUni(2,4,6)]],
+        ['st', [Braille.DotsToUni(3,4)]],
+        ['ing', [Braille.DotsToUni(3,4,6)]],
+        ['ar', [Braille.DotsToUni(3,4,5)]],
+        //
+        ['be', [Braille.DotsToUni(2,3)]],
+        ['enough', [Braille.DotsToUni(2,6)]],
+        ['were', [Braille.DotsToUni(2,3,5,6)]],
+        ['his', [Braille.DotsToUni(2,3,6)]],
+        ['in', [Braille.DotsToUni(3,5)]],
+        ['was', [Braille.DotsToUni(3,5,6)]],
+        ['ea', [Braille.DotsToUni(2)]],
+        ['bb', [Braille.DotsToUni(2,3)]],
+        ['con', [Braille.DotsToUni(2,5)]],
+        ['cc', [Braille.DotsToUni(2,5)]],
+        ['dis', [Braille.DotsToUni(2,5,6)]],
+        ['en', [Braille.DotsToUni(2,6)]],
+        ['ff', [Braille.DotsToUni(2,3,5)]],
+        ['gg', [Braille.DotsToUni(2,3,5,6)]],
+        ['in', [Braille.DotsToUni(3,5)]],
+    ])
     readonly UEB: Map<string, string[]> = new Map([
-        //todo
         ['0', [Braille.DotsToUni(2,4,5)]],
         ['1', [Braille.DotsToUni(1)]],
         ['2', [Braille.DotsToUni(1,2)]],
@@ -53,32 +119,6 @@ export class Braille {
         ['#', [Braille.BraiToUCS([4,5,6],[1,4,5,6])]],
         ['\\^', [Braille.BraiToUCS([4],[2,6])]],
         ['&', [Braille.BraiToUCS([4],[1,2,3,5,6])]],
-        ['A', [Braille.BraiToUCS([6],[1])]],
-        ['B', [Braille.BraiToUCS([6],[1,2])]],
-        ['C', [Braille.BraiToUCS([6],[1,4])]],
-        ['D', [Braille.BraiToUCS([6],[1,4,5])]],
-        ['E', [Braille.BraiToUCS([6],[1,5])]],
-        ['F', [Braille.BraiToUCS([6],[1,2,4])]],
-        ['G', [Braille.BraiToUCS([6],[1,2,4,5])]],
-        ['H', [Braille.BraiToUCS([6],[1,2,5])]],
-        ['I', [Braille.BraiToUCS([6],[2,4])]],
-        ['J', [Braille.BraiToUCS([6],[2,4,5])]],
-        ['K', [Braille.BraiToUCS([6],[1,3])]],
-        ['L', [Braille.BraiToUCS([6],[1,2,3])]],
-        ['M', [Braille.BraiToUCS([6],[1,3,4])]],
-        ['N', [Braille.BraiToUCS([6],[1,3,4,5])]],
-        ['O', [Braille.BraiToUCS([6],[1,3,5])]],
-        ['P', [Braille.BraiToUCS([6],[1,2,3,4])]],
-        ['Q', [Braille.BraiToUCS([6],[1,2,3,4,5])]],
-        ['R', [Braille.BraiToUCS([6],[1,2,3,5])]],
-        ['S', [Braille.BraiToUCS([6],[2,3,4])]],
-        ['T', [Braille.BraiToUCS([6],[2,3,4,5])]],
-        ['U', [Braille.BraiToUCS([6],[1,3,6])]],
-        ['V', [Braille.BraiToUCS([6],[1,2,3,6])]],
-        ['W', [Braille.BraiToUCS([6],[2,4,5,6])]],
-        ['X', [Braille.BraiToUCS([6],[1,3,4,6])]],
-        ['Y', [Braille.BraiToUCS([6],[1,3,4,5,6])]],
-        ['Z', [Braille.BraiToUCS([6],[1,3,5,6])]],
         ['a', [Braille.DotsToUni(1)]],
         ['b', [Braille.DotsToUni(1,2)]],
         ['c', [Braille.DotsToUni(1,4)]],
@@ -106,6 +146,31 @@ export class Braille {
         ['y', [Braille.DotsToUni(1,3,4,5,6)]],
         ['z', [Braille.DotsToUni(1,3,5,6)]],
         ['"', [Braille.DotsToUni(3)]],
+        ['\u03b1', [Braille.BraiToUCS([4,6],[1])]], //alpha
+        ['\u03b2', [Braille.BraiToUCS([4,6],[1,2])]], //beta
+        ['\u03b3', [Braille.BraiToUCS([4,6],[1,2,4,5])]], //gamma
+        ['\u03b4', [Braille.BraiToUCS([4,6],[1,4,5])]], //delta
+        ['\u03b5', [Braille.BraiToUCS([4,6],[1,5])]], //epsilon
+        ['\u03b6', [Braille.BraiToUCS([4,6],[1,3,5,6])]], //zeta
+        ['\u03b7', [Braille.BraiToUCS([4,6],[1,5,6])]], //eta
+        ['\u03b8', [Braille.BraiToUCS([4,6],[1,4,5,6])]], //theta
+        ['\u03b9', [Braille.BraiToUCS([4,6],[2,4])]], //iota
+        ['\u03ba', [Braille.BraiToUCS([4,6],[1,3])]], //kappa
+        ['\u03bb', [Braille.BraiToUCS([4,6],[1,2,3])]], //lambda
+        ['\u03bc', [Braille.BraiToUCS([4,6],[1,3,4])]], //mu
+        ['\u03bd', [Braille.BraiToUCS([4,6],[1,3,4,5])]], //nu
+        ['\u03be', [Braille.BraiToUCS([4,6],[1,3,4,6])]], //xi
+        ['\u03bf', [Braille.BraiToUCS([4,6],[1,3,5])]], //omicron
+        ['\u03c0', [Braille.BraiToUCS([4,6],[1,2,3,4])]], //pi
+        ['\u03c1', [Braille.BraiToUCS([4,6],[1,2,3,5])]], //rho
+        ['\u03c2', [Braille.BraiToUCS([4,6],[2,3,4])]], //final sigma
+        ['\u03c3', [Braille.BraiToUCS([4,6],[2,3,4])]], //sigma
+        ['\u03c4', [Braille.BraiToUCS([4,6],[2,3,4,5])]], //tau
+        ['\u03c5', [Braille.BraiToUCS([4,6],[1,3,6])]], //ypsilon
+        ['\u03c6', [Braille.BraiToUCS([4,6],[1,2,4])]], //phi
+        ['\u03c7', [Braille.BraiToUCS([4,6],[1,2,3,4,6])]], //chi
+        ['\u03c8', [Braille.BraiToUCS([4,6],[1,3,4,5,6])]], //psi
+        ['\u03c9', [Braille.BraiToUCS([4,6],[2,4,5,6])]], //omega
     ]);
     readonly Ascii: Map<string, string> = new Map([
         [Braille.DotsToUni(), ' '],

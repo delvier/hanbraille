@@ -6,58 +6,161 @@ export class HanBraille extends Braille {
         this.u11bc_null = u11bc_null;
     }
     u11bc_null: boolean = false;
-    HangToBrai(hang: string): string {
+    HangToBrai(hang: string, width: number = 0): string {
         let d: string = hang.normalize('NFD');
-        for (let i of this.#mapping) {
-            d = d.replace(new RegExp(i[0], 'gmu'), i[1][0]);
+        let o: string = "";
+        let p: string = "";
+        let linePos: number = 0;
+        let isNumeric: boolean = false;
+        let isUEB: boolean = false;
+        let isCapital: boolean = false;
+        let isInitial: boolean = true;
+        let prohibitContract: boolean = false;
+        while (d !== "") {
+            /* Code switching */
+            if (!isNumeric && d.match(/^[0-9]/gu)) {
+                //Enabling numeric mode in front of digits
+                isNumeric = true;
+                o += HanBraille.DotsToUni(3,4,5,6);
+            }
+            else if (!isUEB && d.match(/^[A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]/)) {
+                //Enabling UEB mode in front of Basic Latin or Greek
+                isUEB = true;
+                isInitial = true;
+                o += HanBraille.DotsToUni(3,5,6);
+                prohibitContract = true;
+            }
+            else if (isNumeric && d.match(/^[^0-9.,~\-]/gu)) {
+                //Disabling numeric mode after non-digit appears
+                // Korean rule accepts hyphens and swung dashes while numeric mode, unlike UEB
+                isNumeric = false;
+                if (o.match(/\u2824$/) && d.match(/^[\u1102\u1103\u1106\u110f-\u1112]\u1161/gu)) {
+                    //hyphen before 나다마카타파하
+                    prohibitContract = true;
+                }
+                else if (d.match(/^([\u1102\u1103\u1106\u110f-\u1112]|\u110b\u116e\u11ab)/gu)) {
+                    //number before ㄴㄷㅁㅋㅌㅍㅎ운
+                    o += HanBraille.DotsToUni(0);
+                }
+            }
+            else if (isUEB && d.match(/^[0-9\p{P}][^A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]/gu)) {
+                isUEB = false;
+            }
+            else if (isUEB && d.match(/^\s[^A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]/gu)) {
+                isUEB = false;
+                isInitial = true;
+                o += HanBraille.DotsToUni(2,5,6);
+            }
+            /** Code switching: UEB capital **/
+            if (isUEB && !isCapital && d.match(/^\p{Lu}+(\s+\p{Lu}+){2,}/gu)) {
+                isCapital = true;
+                o += Braille.BraiToUCS([6],[6],[6]);
+            }
+            else if (isUEB && !isCapital && d.match(/^\p{Lu}+/gu)) {
+                isCapital = true;
+                o += Braille.BraiToUCS([6],[6]);
+            }
+            else if (isUEB && !isCapital && d.match(/^\p{Lu}/gu)) {
+                o += Braille.BraiToUCS([6]);
+            }
+            else if (isUEB && isCapital && d.match(/^[^\s\p{Lu}]/gu)) {
+                isCapital = false;
+                o += Braille.BraiToUCS([6],[3]);
+            }
+            /* Actual conversion */
+            if (d[0].match(/^\n/)) {
+                isInitial = true;
+                o += '\n';
+                p = d[0];
+                d = d.slice(1);
+            }
+            else if (d[0].match(/^ /gu)) {
+                //whitespace is special
+                isInitial = true;
+                o += HanBraille.DotsToUni(0);
+                p = d[0];
+                d = d.slice(1);
+            }
+            else if (!isUEB) hanExit: {
+                for (const x of this.#hanMappingAntiCollision) {
+                    let p_regexp = new RegExp(x[0][0], 'gu');
+                    let d_regexp = new RegExp('^' + x[0][1], 'gu');
+                    if (p_regexp.test(p) && d_regexp.test(d)) {
+                        o += x[1][0];
+                    }
+                }
+                if (!prohibitContract) {
+                    for (const x of this.#hanMappingContract) {
+                        let regexp = new RegExp('^' + x[0], 'gu');
+                        if (regexp.test(d)) {
+                            o += x[1][0];
+                            p = d[0];
+                            d = d.slice(regexp.lastIndex);
+                            break hanExit;
+                        }
+                    }
+                }
+                for (const x of this.#hanMapping) {
+                    let regexp = new RegExp('^' + x[0], 'gu');
+                    if (regexp.test(d)) {
+                        o += x[1][0];
+                        p = d[0];
+                        d = d.slice(regexp.lastIndex);
+                        prohibitContract = false;
+                        break hanExit;
+                    }
+                }
+                console.log(`Skipping ${d[0]}...`);
+                d = d.slice(1);
+            }
+            else if (isUEB) UEBExit: {
+                /*
+                if (!prohibitContract) {
+                    for (const x of this.UEB2) {
+                        let regexp = new RegExp('^' + x[0], 'gu');
+                        if (regexp.test(d.toLowerCase())) {
+                            o += x[1][0];
+                            p = d[0];
+                            d = d.slice(regexp.lastIndex);
+                            break UEBExit;
+                        }
+                    }
+                }*/
+                for (const x of this.UEB) {
+                    let regexp = new RegExp('^' + x[0], 'gu');
+                    if (regexp.test(d.toLowerCase())) {
+                        o += x[1][0];
+                        p = d[0];
+                        d = d.slice(regexp.lastIndex);
+                        prohibitContract = false;
+                        break UEBExit;
+                    }
+                }
+                console.log(`Skipping ${d[0]}...`);
+                d = d.slice(1);
+            }
+            
         }
-        for (let i of this.UEB) {
-            d = d.replace(new RegExp(i[0], 'gmu'), i[1][0]);
-        }
-        // out-of-scope conversion below
-        d = d.replace(/ /gmu, Braille.DotsToUni());
-        d = d.replace(/\t/gmu, Braille.BraiToUCS([],[],[],[]));
-        d = d.replace(/[^\n\u2800-\u28ff]/gmu, "");
         if (this.asciiMode) {
-            d =  Braille.BraiUCSToASCII(d);
+            o =  Braille.BraiUCSToASCII(o);
         }
-        return d;
+        return o;
     }
-    readonly #mapping: Map<string, string[]> = new Map([
-        /* Code switching */
-        //제4장: 로마자 (TODO)
-        ['([A-Za-z@#^&][\u0020-\u007f]*)', [HanBraille.DotsToUni(3,5,6) + '$1' + HanBraille.DotsToUni(2,5,6)]],
-        //제5장: 숫자
-        ["([0-9'][0-9:\\-,·.]*)", [HanBraille.DotsToUni(3,4,5,6)  + '$1']],
-        ['([0-9])(?=[\u1102\u1103\u1106\u110f-\u1112]|\u110b\u116e\u11ab)', ['$1' + HanBraille.DotsToUni()]], //number before ㄴㄷㅁㅋㅌㅍㅎ운
-        ['([0-9])(?=[₩￦¢$£¥€])', ['$1' + HanBraille.DotsToUni(3,5,6)]], //cf. 제72항
-        ////제39항-3: shorthand prohibition
-        ['(?<=[0-9]-)나'.normalize('NFD'), [HanBraille.BraiToUCS([1,4],[1,2,6])]],
-        ['(?<=[0-9]-)다'.normalize('NFD'), [HanBraille.BraiToUCS([2,4],[1,2,6])]],
-        ['(?<=[0-9]-)마'.normalize('NFD'), [HanBraille.BraiToUCS([1,5],[1,2,6])]],
-        ['(?<=[0-9]-)카'.normalize('NFD'), [HanBraille.BraiToUCS([1,2,4],[1,2,6])]],
-        ['(?<=[0-9]-)타'.normalize('NFD'), [HanBraille.BraiToUCS([1,2,5],[1,2,6])]],
-        ['(?<=[0-9]-)파'.normalize('NFD'), [HanBraille.BraiToUCS([1,4,5],[1,2,6])]],
-        ['(?<=[0-9]-)하'.normalize('NFD'), [HanBraille.BraiToUCS([2,4,5],[1,2,6])]],
-        ////제47항-*
-        ['(?<=[0-9]),(?=[0-9])', [HanBraille.DotsToUni(2)]],
+    readonly #hanMappingAntiCollision: Map<string[], string[]> = new Map([
+        // [[prev, next], [...candidates]]
+        //제5절: Vowel chain
+        [['[\u1161-\u11a7]', '\u110b\u1168'], [HanBraille.BraiToUCS([3,6])]], //(V)예: 제10항
+        [['[\u1163\u116a\u116e\u116f]', '\u110b\u1162'], [HanBraille.BraiToUCS([3,6])]], //([ㅑㅘㅜㅝ])애: 제11항
+    ])
+    readonly #hanMappingContract: Map<string, string[]> = new Map([
         /* Special cases */
-        //제63~66항: omission
-        ['(×+)', [HanBraille.DotsToUni(4,5,6) + '$1' + HanBraille.DotsToUni(1,2,3)]],
-        ['×', [HanBraille.DotsToUni(1,3,4,6)]],
-        ['(○+)', [HanBraille.DotsToUni(4,5,6) + '$1' + HanBraille.DotsToUni(1,2,3)]],
-        ['○', [HanBraille.DotsToUni(3,5,6)]],
-        ['(△+)', [HanBraille.DotsToUni(4,5,6) + '$1' + HanBraille.DotsToUni(1,2,3)]],
-        ['△', [HanBraille.DotsToUni(3,4,6)]],
-        ['(□+)', [HanBraille.DotsToUni(4,5,6) + '$1' + HanBraille.DotsToUni(1,2,3)]],
-        ['□', [HanBraille.DotsToUni(2,3,5,6)]],
         //제52~58항: opening and closing
-        ['"(.*)"', [HanBraille.DotsToUni(2,3,6) + '$1' + HanBraille.DotsToUni(3,5,6)]],
-        ["'(.*)'", [HanBraille.BraiToUCS([6],[2,3,6]) + '$1' + HanBraille.BraiToUCS([3,5,6],[3])]],
+        //['"(.*)"', [HanBraille.DotsToUni(2,3,6) + '$1' + HanBraille.DotsToUni(3,5,6)]],
+        //["'(.*)'", [HanBraille.BraiToUCS([6],[2,3,6]) + '$1' + HanBraille.BraiToUCS([3,5,6],[3])]],
         //제28항; This needs to go *before* the syllable, unlike UCS hangul
         ////always first because this changes character order; ignored if not related to hangul syllable
-        ['([\u1100-\u115f][\u1160-\u11a7][\u11a8-\u11ff]?)\u302e', [HanBraille.BraiToUCS([4,5,6],[2]) + '$1']], //거성 1점
-        ['([\u1100-\u115f][\u1160-\u11a7][\u11a8-\u11ff]?)\u302f', [HanBraille.BraiToUCS([4,5,6],[1,3]) + '$1']], //상성 2점
+        //['([\u1100-\u115f][\u1160-\u11a7][\u11a8-\u11ff]?)\u302e', [HanBraille.BraiToUCS([4,5,6],[2]) + '$1']], //거성 1점
+        //['([\u1100-\u115f][\u1160-\u11a7][\u11a8-\u11ff]?)\u302f', [HanBraille.BraiToUCS([4,5,6],[1,3]) + '$1']], //상성 2점
         //제7절: Abbr. Only at the beginning of the line, or after a whitespace or a punctuation
         ['(?<=^|\\s|\\p{P})그래서'.normalize('NFD'), [HanBraille.BraiToUCS([1],[2,3,4])]], //그래서
         ['(?<=^|\\s|\\p{P})그러나'.normalize('NFD'), [HanBraille.BraiToUCS([1],[1,2])]], //그러나
@@ -169,10 +272,19 @@ export class HanBraille extends Braille {
         ['\u1175\u11ad', [HanBraille.BraiToUCS([1,2,3,4,5],[3,5,6])]], //ᅟᅵᆭ
         ['것'.normalize('NFD'), [HanBraille.BraiToUCS([4,5,6],[2,3,4])]], //것
         ['껏'.normalize('NFD'), [HanBraille.BraiToUCS([6],[4,5,6],[2,3,4])]], //껏
-        //제5절: Vowel chain
-        ['(?<=[\u1161-\u11a7])\u110b\u1168', [HanBraille.BraiToUCS([3,6],[3,4])]], //(V)예: 제10항
-        ['(?<=[\u1163\u116a\u116e\u116f])\u110b\u1162', [HanBraille.BraiToUCS([3,6],[1,2,3,5])]], //([ㅑㅘㅜㅝ])애: 제11항
-        /* End of the special cases */
+    ]);
+    readonly #hanMapping: Map<string, string[]> = new Map([
+        //Numeric
+        ['0', [Braille.DotsToUni(2,4,5)]],
+        ['1', [Braille.DotsToUni(1)]],
+        ['2', [Braille.DotsToUni(1,2)]],
+        ['3', [Braille.DotsToUni(1,4)]],
+        ['4', [Braille.DotsToUni(1,4,5)]],
+        ['5', [Braille.DotsToUni(1,5)]],
+        ['6', [Braille.DotsToUni(1,2,4)]],
+        ['7', [Braille.DotsToUni(1,2,4,5)]],
+        ['8', [Braille.DotsToUni(1,2,5)]],
+        ['9', [Braille.DotsToUni(2,4)]],
         //제1절
         ['\u1100', [HanBraille.DotsToUni(4)]], //ㄱ
         ['\u1101', [HanBraille.BraiToUCS([6],[4])]], //ㄲ
