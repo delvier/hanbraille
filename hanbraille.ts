@@ -26,6 +26,8 @@ export class HanBraille extends Braille {
                 var q = d.slice(0, UEBDetect.lastIndex);
                 d = d.slice(UEBDetect.lastIndex);
                 o += HanBraille.DotsToUni(3,5,6);
+                q = this.UnifiedBrai(q);
+                q = q.replace(/\u2820\u2804$/gu, ''); //remove capital terminator
                 o += this.UnifiedBrai(q);
                 o += HanBraille.DotsToUni(2,5,6);
             }
@@ -53,18 +55,22 @@ export class HanBraille extends Braille {
             }
             else hanExit: {
                 for (const x of this.#hanMappingAntiCollision) {
-                    //assuring x.symbol is ''
-                    if ((x.before === undefined || x.before.test(p))
-                    && (x.after === undefined || x.after.test(d))) {
+                    //assuring x.symbol is ''; new RegExp obj is necessary
+                    let b: RegExp | undefined;
+                    if (x.before)
+                        b = new RegExp(x.before);
+                    let a: RegExp | undefined
+                    if (x.after)
+                        a = new RegExp(x.after);
+                    if ((b === undefined || b.test(p))
+                    && (a === undefined || a.test(d))) {
                         o += x.braille;
                     }
                 }
                 if (!prohibitContract) {
                     for (const x of this.#hanMappingContract) {
                         let regexp: RegExp;
-                        if (typeof(x.after) == 'string') {
-                            regexp = new RegExp('^' + x.symbol + '(?=' + x.after + ')', 'gu');
-                        } else if (typeof(x.after) == 'object') { //RegExp
+                        if (typeof(x.after) == 'object') { //RegExp
                             regexp = new RegExp('^' + x.symbol + '(?=' + x.after.source + ')', 'gu');
                         } else {
                             regexp = new RegExp('^' + x.symbol, 'gu');

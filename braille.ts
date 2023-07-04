@@ -8,116 +8,25 @@ export type Rule = {
 export class Braille {
     constructor() {
     }
-    static standalone_prec: RegExp = new RegExp(/(^|\s|\p{Pd}|\p{Ps}|\p{Pi})$/gu);
+    static standalone_prec: RegExp = new RegExp(/^|\s|\p{Pd}|\p{Ps}|\p{Pi}/gu);
     static standalone_foll: RegExp = new RegExp(/\s|\p{Pd}|[,;:.!?]|\p{Pe}|\p{Pf}|$/gu);
     UnifiedBrai(input: string, width: number = 0): string {
-        //original way was better due to contraction prefernces
         let d: string = input.normalize('NFD'); //detaching diacritics
-        let o: string = '';
-        let p: string = ' ';
-        let linePos: number = 0;
-        let isNumeric: boolean = false;
-        let isCapital: boolean = false;
-        let isCapSeq: boolean = false;
-        let prohibitContract: boolean = false;
-        while (d !== '') {
-            console.log(o + ' ' + d);
-            if (!isNumeric && d.match(/^[0-9]/gu)) {
-                //Enabling numeric mode in front of digits
-                isNumeric = true;
-                o += Braille.DotsToUni(3,4,5,6);
-            }
-            else if (isNumeric && d.match(/^[^0-9.,]/gu)) {
-                //Disabling numeric mode after non-digit appears
-                isNumeric = false;
-                if (d.match(/^[a-j.,]/gu)) {
-                    //force grade 1 mode to avoid confusion
-                    o += Braille.DotsToUni(5,6);
-                }
-            }
-            else if (!isCapital && d.match(/^\p{Lu}+(?=\s|\p{Pd}|[,;:.!?]|\p{Pe}|\p{Pf}|$)/gu)) {
-                isCapital = true;
-                isCapSeq = false;
-                o += Braille.BraiToUCS([6],[6]);
-            }
-            else if (!isCapital && d.match(/^\p{Lu}/gu)) {
-                o += Braille.BraiToUCS([6]);
-            }
-            else if (isCapital && isCapSeq && d.match(/^[^\s\p{Lu}]/gu)) {
-                isCapital = false;
-                isCapSeq = false;
-                o += Braille.BraiToUCS([6],[3]);
-            }
-            else if (isCapital && !isCapSeq && d.match(/^[^\p{Lu}]/gu)) {
-                isCapital = false;
-            }
-            /* Actual conversion */
-            if (d[0] === undefined) {
-            }
-            else if (d[0].match(/^\n/)) {
-                o += '\n';
-                p = d[0];
-                d = d.slice(1);
-            }
-            else if (d[0].match(/^\s/gu)) {
-                o += Braille.DotsToUni(0);
-                p = d[0];
-                d = d.slice(1);
-            }
-            if (true) UEBExit: {
-                if (!prohibitContract) {
-                    for (const x of this.UEB2_Strong) {
-                        let regexp: RegExp;
-                        if (typeof(x.after) == 'string') {
-                            regexp = new RegExp('^' + x.symbol + '(?=' + x.after + ')', 'gu');
-                        } else if (typeof(x.after) == 'object') { //RegExp
-                            regexp = new RegExp('^' + x.symbol + '(?=' + x.after.source + ')', 'gu');
-                        } else {
-                            regexp = new RegExp('^' + x.symbol, 'gu');
-                        }
-                        if (regexp.test(d.toLowerCase())
-                        && (x.condition === undefined || x.condition)
-                        && (x.before === undefined || x.before.test(p))) {
-                            o += x.braille;
-                            p = d.slice(0, regexp.lastIndex);
-                            d = d.slice(regexp.lastIndex);
-                            break UEBExit;
-                        }
-                    }
-                    for (const x of this.UEB2_Normal) {
-                        let regexp: RegExp;
-                        if (typeof(x.after) == 'string') {
-                            regexp = new RegExp('^' + x.symbol + '(?=' + x.after + ')', 'gu');
-                        } else if (typeof(x.after) == 'object') { //RegExp
-                            regexp = new RegExp('^' + x.symbol + '(?=' + x.after.source + ')', 'gu');
-                        } else {
-                            regexp = new RegExp('^' + x.symbol, 'gu');
-                        }
-                        if (regexp.test(d.toLowerCase())
-                        && (x.condition === undefined || x.condition)
-                        && (x.before === undefined || x.before.test(p))) {
-                            o += x.braille;
-                            p = d.slice(0, regexp.lastIndex);
-                            d = d.slice(regexp.lastIndex);
-                            break UEBExit;
-                        }
-                    }
-                }
-                for (const x of this.UEB) {
-                    let regexp = new RegExp('^' + x.symbol, 'gu');
-                    if (regexp.test(d.toLowerCase()) && (x.condition || x.condition === undefined)) {
-                        o += x.braille;
-                        p = d.slice(0, regexp.lastIndex);
-                        d = d.slice(regexp.lastIndex);
-                        prohibitContract = false;
-                        break UEBExit;
-                    }
-                }
-                console.log(`Skipping ${d[0]}...`);
-                d = d.slice(1);
+        d = d.replace(/[0-9][0-9.,]*/gu, Braille.DotsToUni(3,4,5,6) + '$&'); //Numeric mode
+        d = d.replace(/(?<=[0-9])[a-j.,]/giu, Braille.DotsToUni(5,6) + '$&'); //Force grade 1 mode after numeric
+        d = d.replace(/(?<=\s|^)[bcdf-hj-np-tv-z?](?=[\s.]|$)/giu, Braille.DotsToUni(5,6) + '$&'); //grade 1 mode for isolated
+        d = d.replace(/\p{Lu}[^\p{Ll}\s]+( [^\p{Ll}\s]+){2,}/gu, Braille.BraiToUCS([6],[6],[6]) + '$&'); //Capitalised passage
+        d = d.replace(/(?<!\u2820\u2820\u2820[^\u2804]*)\p{Lu}{2,}/gu, Braille.BraiToUCS([6],[6]) + '$&'); //Capitalised word
+        d = d.replace(/\u2820\u2820\u2820\p{Lu}[^\p{Ll}\s]+( [^\p{Ll}\s]+){2,}/gu, '$&' + Braille.BraiToUCS([6],[3])); //Capitals terminator
+        d = d.replace(/(^|[^\u2820])\u2820\u2820\p{Lu}{2,}(?=[^\p{Lu}])/gu, '$&' + Braille.BraiToUCS([6],[3])); //Capitals terminator
+        d = d.replace(/(?<!\u2820\u2820[^\u2804]*)\p{Lu}(?![^\u2820]*\u2820\u2804)/gu, Braille.DotsToUni(6) + '$&'); //Single Capital
+        for (let r of this.UEB) {
+            var rule: RegExp = new RegExp('(?<=' + (r.before?.source || '') + ')' + r.symbol + '(?=' + (r.after?.source || '') + ')', 'giu');
+            if (rule.test(d)) {
+                d = d.replace(rule, r.braille);
             }
         }
-        return o;
+        return d;
     }
     static BraiToUCS(...lists: number[][]): string {
         let o: string = ""
@@ -153,7 +62,7 @@ export class Braille {
         }
         return o;
     }
-    readonly UEB2_Strong: Rule[] = [
+    readonly UEB: Rule[] = [
         //condition is rather complex, how to compromise
         //Alphabetic wordsigns
         {symbol: 'but', braille: Braille.DotsToUni(1,2), before: Braille.standalone_prec, after: Braille.standalone_foll},
@@ -282,8 +191,6 @@ export class Braille {
         {symbol: 'st', braille: Braille.DotsToUni(3,4)},
         {symbol: 'ing', braille: Braille.DotsToUni(3,4,6), before: Braille.standalone_prec},
         {symbol: 'ar', braille: Braille.DotsToUni(3,4,5)},
-    ];
-    readonly UEB2_Normal: Rule[] = [
         //Lower groupsigns
         {symbol: 'ea', braille: Braille.DotsToUni(2), before: /[A-Za-z]$/gu, after: /[A-Za-z]/gu},
         {symbol: 'bb', braille: Braille.DotsToUni(2,3), before: /[A-Za-z]$/gu, after: /[A-Za-z]/gu},
@@ -348,8 +255,7 @@ export class Braille {
         {symbol: 'ness', braille: Braille.BraiToUCS([5,6],[2,3,4]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
         {symbol: 'ment', braille: Braille.BraiToUCS([5,6],[2,3,4,5]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
         {symbol: 'ity', braille: Braille.BraiToUCS([5,6],[1,3,4,5,6]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
-    ]
-    readonly UEB: Rule[] = [
+        //Grade 1
         {symbol: '0', braille: Braille.DotsToUni(2,4,5)},
         {symbol: '1', braille: Braille.DotsToUni(1)},
         {symbol: '2', braille: Braille.DotsToUni(1,2)},
@@ -445,6 +351,7 @@ export class Braille {
         {symbol: '\u03c7', braille: Braille.BraiToUCS([4,6],[1,2,3,4,6])}, //chi
         {symbol: '\u03c8', braille: Braille.BraiToUCS([4,6],[1,3,4,5,6])}, //psi
         {symbol: '\u03c9', braille: Braille.BraiToUCS([4,6],[2,4,5,6])}, //omega
+        {symbol: ' ', braille: Braille.DotsToUni(0)},
     ];
     readonly Ascii: Map<string, string> = new Map([
         [Braille.DotsToUni(), ' '],

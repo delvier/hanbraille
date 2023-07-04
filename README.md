@@ -28,9 +28,9 @@ The `-a` flag makes the output as [Braille ASCII](https://en.wikipedia.org/wiki/
 
 ```console
 $ hanbraille "…1948년 7월 12일에 제정되고 8차에 걸쳐 개정된 헌법을 이제 국회의 의결을 거쳐 국민투표에 의하여 개정한다."
-⠠⠠⠠⠼⠁⠒⠙⠓⠀⠉⠡⠀⠼⠛⠏⠂⠀⠼⠁⠃⠕⠂⠝⠀⠨⠝⠨⠻⠊⠽⠈⠥⠀⠼⠓⠰⠣⠝⠀⠈⠞⠰⠱⠀⠈⠗⠨⠻⠊⠽⠒⠀⠚⠾⠘⠎⠃⠮⠀⠕⠨⠝⠀⠈⠍⠁⠚⠽⠺⠀⠺⠈⠳⠮⠀⠈⠎⠰⠱⠀⠈⠍⠁⠑⠟⠓⠍⠙⠬⠝⠀⠺⠚⠣⠱⠀⠈⠗⠨⠻⠚⠒⠊⠲
+⠠⠠⠠⠼⠁⠊⠙⠓⠀⠉⠡⠀⠼⠛⠏⠂⠀⠼⠁⠃⠕⠂⠝⠀⠨⠝⠨⠻⠊⠽⠈⠥⠀⠼⠓⠰⠣⠝⠀⠈⠞⠰⠱⠀⠈⠗⠨⠻⠊⠽⠒⠀⠚⠾⠘⠎⠃⠮⠀⠕⠨⠝⠀⠈⠍⠁⠚⠽⠺⠀⠺⠈⠳⠮⠀⠈⠎⠰⠱⠀⠈⠍⠁⠑⠟⠓⠍⠙⠬⠝⠀⠺⠚⠣⠱⠀⠈⠗⠨⠻⠚⠒⠊⠲
 $ hanbraille -a "…1948년 7월 12일에 제정되고 8차에 걸쳐 개정된 헌법을 이제 국회의 의결을 거쳐 국민투표에 의하여 개정한다."
-,,,#A3DH C* #GP1 #ABO1N .N.]IY@U #H;<N @T;: @R.]IY3 J)^SB! O.N @MAJYW W@\! @S;: @MAEQHMD+N WJ<: @R.]J3I4
+,,,#AIDH C* #GP1 #ABO1N .N.]IY@U #H;<N @T;: @R.]IY3 J)^SB! O.N @MAJYW W@\! @S;: @MAEQHMD+N WJ<: @R.]J3I4
 ```
 
 - Constitution of the Republic of Korea (No. 10), Preamble, part of
