@@ -7,35 +7,26 @@ export class HanBraille extends Braille {
     }
     u11bc_null: boolean = false;
     u3163_isolate: boolean = false;
-    HangToBrai(hang: string, width: number = 0): string {
+    HangBrai(hang: string, width: number = 0): string {
         let d: string = hang.normalize('NFD');
         let o: string = '';
         let p: string = ' ';
         let linePos: number = 0;
         let isNumeric: boolean = false;
-        let isCapital: boolean = false;
-        let isCapSeq: boolean = false;
         let prohibitContract: boolean = false;
-        const UEBDetect = /^[A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9](([0-9A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]|\s)*[0-9A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9])?/gu;
-        while (d !== "") {
+        const UEBDetect = /^[A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9](([0-9A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]|\p{P}|\s)*([0-9A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]|\p{P}))?/gu;
+        while (d !== '') {
             /* Code switching */
             if (!isNumeric && d.match(/^[0-9]/gu)) {
                 //Enabling numeric mode in front of digits
                 isNumeric = true;
                 o += HanBraille.DotsToUni(3,4,5,6);
-            }/*
-            else if (!isUEB && d.match(/^[A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]/gu)) {
-                //Enabling UEB mode in front of Basic Latin or Greek
-                isUEB = true;
-                o += HanBraille.DotsToUni(3,5,6);
-                //prohibitContract = true;
-                //Only for some words
-            }*/
+            }
             else if (UEBDetect.test(d)) {
                 var q = d.slice(0, UEBDetect.lastIndex);
                 d = d.slice(UEBDetect.lastIndex);
                 o += HanBraille.DotsToUni(3,5,6);
-                o += this.ToBrai(q);
+                o += this.UnifiedBrai(q);
                 o += HanBraille.DotsToUni(2,5,6);
             }
             else if (isNumeric && d.match(/^[^0-9.,~\-]/gu)) {
@@ -48,7 +39,9 @@ export class HanBraille extends Braille {
                 }
             }
             /* Actual conversion */
-            if (d[0].match(/^\n/)) {
+            if (d[0] === undefined) {
+            }
+            else if (d[0].match(/^\n/)) {
                 o += '\n';
                 p = d[0];
                 d = d.slice(1);

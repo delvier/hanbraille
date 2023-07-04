@@ -25,14 +25,14 @@ if (!process.stdin.isTTY) {
         text = chunk.toString().replace(/\r\n/g, '\n');
     })
     .on('end', () => {
-        let out = hanbraille.HangToBrai(text);
+        let out = hanbraille.HangBrai(text);
         if (ascii) {
             out = hanbraille.BraiUCSToASCII(out);
         }
         console.log(out);
     });
 } else {
-    let out = hanbraille.HangToBrai(text);
+    let out = hanbraille.HangBrai(text);
     if (ascii) {
         out = hanbraille.BraiUCSToASCII(out);
     }
