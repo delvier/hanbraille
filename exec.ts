@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { Braille } from "./braille";
 import { HanBraille } from "./hanbraille";
 
 let help: string = 
@@ -25,9 +26,15 @@ if (!process.stdin.isTTY) {
     })
     .on('end', () => {
         let out = hanbraille.HangToBrai(text);
+        if (ascii) {
+            out = hanbraille.BraiUCSToASCII(out);
+        }
         console.log(out);
     });
 } else {
     let out = hanbraille.HangToBrai(text);
+    if (ascii) {
+        out = hanbraille.BraiUCSToASCII(out);
+    }
     console.log(out);
 }

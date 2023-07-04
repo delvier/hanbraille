@@ -1,8 +1,7 @@
 import { Braille, Rule } from "./braille";
 export class HanBraille extends Braille {
-    constructor(asciiMode: boolean = false, u11bc_null: boolean = false, u3163_isolate: boolean = false) {
+    constructor(u11bc_null: boolean = false, u3163_isolate: boolean = false) {
         super();
-        this.asciiMode = asciiMode;
         this.u11bc_null = u11bc_null;
         this.u3163_isolate = u3163_isolate;
     }
@@ -10,26 +9,34 @@ export class HanBraille extends Braille {
     u3163_isolate: boolean = false;
     HangToBrai(hang: string, width: number = 0): string {
         let d: string = hang.normalize('NFD');
-        let o: string = "";
-        let p: string = "";
+        let o: string = '';
+        let p: string = ' ';
         let linePos: number = 0;
         let isNumeric: boolean = false;
-        let isUEB: boolean = false;
         let isCapital: boolean = false;
         let isCapSeq: boolean = false;
         let prohibitContract: boolean = false;
+        const UEBDetect = /^[A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9](([0-9A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]|\s)*[0-9A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9])?/gu;
         while (d !== "") {
             /* Code switching */
             if (!isNumeric && d.match(/^[0-9]/gu)) {
                 //Enabling numeric mode in front of digits
                 isNumeric = true;
                 o += HanBraille.DotsToUni(3,4,5,6);
-            }
-            else if (!isUEB && d.match(/^[A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]/)) {
+            }/*
+            else if (!isUEB && d.match(/^[A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]/gu)) {
                 //Enabling UEB mode in front of Basic Latin or Greek
                 isUEB = true;
                 o += HanBraille.DotsToUni(3,5,6);
-                prohibitContract = true;
+                //prohibitContract = true;
+                //Only for some words
+            }*/
+            else if (UEBDetect.test(d)) {
+                var q = d.slice(0, UEBDetect.lastIndex);
+                d = d.slice(UEBDetect.lastIndex);
+                o += HanBraille.DotsToUni(3,5,6);
+                o += this.ToBrai(q);
+                o += HanBraille.DotsToUni(2,5,6);
             }
             else if (isNumeric && d.match(/^[^0-9.,~\-]/gu)) {
                 //Disabling numeric mode after non-digit appears
@@ -39,39 +46,6 @@ export class HanBraille extends Braille {
                     //hyphen before 나다마카타파하
                     prohibitContract = true;
                 }
-                else if (d.match(/^([\u1102\u1103\u1106\u110f-\u1112]|\u110b\u116e\u11ab)/gu)) {
-                    //number before ㄴㄷㅁㅋㅌㅍㅎ운
-                    o += HanBraille.DotsToUni(0);
-                }
-            }
-            else if (isUEB && d.match(/^[0-9\p{P}][^A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]/gu)) {
-                isUEB = false;
-            }
-            else if (isUEB && d.match(/^\s[^A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]/gu)) {
-                isUEB = false;
-                o += HanBraille.DotsToUni(2,5,6);
-            }
-            /** Code switching: UEB capital **/
-            if (isUEB && !isCapital && d.match(/^\p{Lu}+(\s+\p{Lu}+){2,}/gu)) {
-                isCapital = true;
-                isCapSeq = true;
-                o += Braille.BraiToUCS([6],[6],[6]);
-            }
-            else if (isUEB && !isCapital && d.match(/^\p{Lu}+/gu)) {
-                isCapital = true;
-                isCapSeq = false;
-                o += Braille.BraiToUCS([6],[6]);
-            }
-            else if (isUEB && !isCapital && d.match(/^\p{Lu}/gu)) {
-                o += Braille.BraiToUCS([6]);
-            }
-            else if (isUEB && isCapital && isCapSeq && d.match(/^[^\s\p{Lu}]/gu)) {
-                isCapital = false;
-                isCapSeq = false;
-                o += Braille.BraiToUCS([6],[3]);
-            }
-            else if (isUEB && isCapital && !isCapSeq && d.match(/^[^\p{Lu}]/gu)) {
-                isCapital = false;
             }
             /* Actual conversion */
             if (d[0].match(/^\n/)) {
@@ -79,14 +53,14 @@ export class HanBraille extends Braille {
                 p = d[0];
                 d = d.slice(1);
             }
-            else if (d[0].match(/^ /gu)) {
-                //whitespace is special
+            else if (d[0].match(/^\s/gu)) {
                 o += HanBraille.DotsToUni(0);
                 p = d[0];
                 d = d.slice(1);
             }
-            else if (!isUEB) hanExit: {
+            else hanExit: {
                 for (const x of this.#hanMappingAntiCollision) {
+                    //assuring x.symbol is ''
                     if ((x.before === undefined || x.before.test(p))
                     && (x.after === undefined || x.after.test(d))) {
                         o += x.braille;
@@ -94,7 +68,14 @@ export class HanBraille extends Braille {
                 }
                 if (!prohibitContract) {
                     for (const x of this.#hanMappingContract) {
-                        let regexp = new RegExp('^' + x.symbol, 'gu');
+                        let regexp: RegExp;
+                        if (typeof(x.after) == 'string') {
+                            regexp = new RegExp('^' + x.symbol + '(?=' + x.after + ')', 'gu');
+                        } else if (typeof(x.after) == 'object') { //RegExp
+                            regexp = new RegExp('^' + x.symbol + '(?=' + x.after.source + ')', 'gu');
+                        } else {
+                            regexp = new RegExp('^' + x.symbol, 'gu');
+                        }
                         if (regexp.test(d)
                         && (x.condition === undefined || x.condition)
                         && (x.before === undefined || x.before.test(p))) {
@@ -118,47 +99,21 @@ export class HanBraille extends Braille {
                 console.log(`Skipping ${d[0]}...`);
                 d = d.slice(1);
             }
-            else if (isUEB) UEBExit: {
-                /*
-                if (!prohibitContract) {
-                    for (const x of this.UEB2) {
-                        let regexp = new RegExp('^' + x.symbol, 'gu');
-                        if (regexp.test(d.toLowerCase()) && (x.condition || x.condition === undefined)) {
-                            o += x.braille;
-                            p = d.slice(0, regexp.lastIndex);
-                            d = d.slice(regexp.lastIndex);
-                            break UEBExit;
-                        }
-                    }
-                }*/
-                for (const x of this.UEB) {
-                    let regexp = new RegExp('^' + x.symbol, 'gu');
-                    if (regexp.test(d.toLowerCase()) && (x.condition || x.condition === undefined)) {
-                        o += x.braille;
-                        p = d.slice(0, regexp.lastIndex);
-                        d = d.slice(regexp.lastIndex);
-                        prohibitContract = false;
-                        break UEBExit;
-                    }
-                }
-                console.log(`Skipping ${d[0]}...`);
-                d = d.slice(1);
-            }
             
-        }
-        if (this.asciiMode) {
-            o =  Braille.BraiUCSToASCII(o);
         }
         return o;
     }
     readonly #hanMappingAntiCollision: Rule[] = [
         //제5절: Vowel chain
-        {symbol: '', braille: HanBraille.DotsToUni(3,6), before: /[\u1161-\u11a7]/, after: /\u110b\u1168/}, //(V)예: 제10항
-        {symbol: '', braille: HanBraille.DotsToUni(3,6), before: /[\u1163\u116a\u116e\u116f]/, after: /\u110b\u1162/}, //([ㅑㅘㅜㅝ])애: 제11항
+        {symbol: '', braille: HanBraille.DotsToUni(3,6), before: /[\u1161-\u11a7]/gu, after: /^\u110b\u1168/gu}, //(V)예: 제10항
+        {symbol: '', braille: HanBraille.DotsToUni(3,6), before: /[\u1163\u116a\u116e\u116f]/gu, after: /^\u110b\u1162/gu}, //([ㅑㅘㅜㅝ])애: 제11항
         //제28항; This needs to go *before* the syllable, unlike UCS hangul
         ////always first because this changes character order; ignored if not related to hangul syllable
-        {symbol: '', braille: HanBraille.BraiToUCS([4,5,6],[2]), after: /([\u1100-\u115f][\u1160-\u11a7][\u11a8-\u11ff]?)\u302e/}, //거성 1점
-        {symbol: '', braille: HanBraille.BraiToUCS([4,5,6],[1,3]), after: /([\u1100-\u115f][\u1160-\u11a7][\u11a8-\u11ff]?)\u302f/}, //상성 2점
+        {symbol: '', braille: HanBraille.BraiToUCS([4,5,6],[2]), after: /^([\u1100-\u115f][\u1160-\u11a7][\u11a8-\u11ff]?)\u302e/gu}, //거성 1점
+        {symbol: '', braille: HanBraille.BraiToUCS([4,5,6],[1,3]), after: /^([\u1100-\u115f][\u1160-\u11a7][\u11a8-\u11ff]?)\u302f/gu}, //상성 2점
+        //제38항
+        //number before ㄴㄷㅁㅋㅌㅍㅎ운
+        {symbol: '', braille: HanBraille.DotsToUni(0), before: /[0-9]/gu, after: /^([\u1102\u1103\u1106\u110f-\u1112]|\u110b\u116e\u11ab)/gu},
     ];
     readonly #hanMappingContract: Rule[] = [
         /* Special cases */
@@ -362,22 +317,22 @@ export class HanBraille extends Braille {
         {symbol: '\u11c1', braille: HanBraille.DotsToUni(2,5,6)}, //-ㅍ
         {symbol: '\u11c2', braille: HanBraille.DotsToUni(3,5,6)}, //-ㅎ
         //제4절: Singular
-        ////Assuming remaining Hangul Compatibility Jamo as the choseong (L)
+        ////Assuming remaining Hangul Compatibility Jamo as the Jongseong (T) per 43항
         ////TODO: L-HJF, HCF-V, HCF-HJF-T (These are special cases)
-        {symbol: '\u3131', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[4])}, //*ㄱ
-        {symbol: '\u3134', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,4])}, //*ㄴ
-        {symbol: '\u3137', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,4])}, //*ㄷ
-        {symbol: '\u3139', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[5])}, //*ㄹ
-        {symbol: '\u3141', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,5])}, //*ㅁ
-        {symbol: '\u3142', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[4,5])}, //*ㅂ
-        {symbol: '\u3145', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[6])}, //*ㅅ
-        {symbol: '\u3147', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,2,4,5])}, //*ㅇ
-        {symbol: '\u3148', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[4,6])}, //*ㅈ
-        {symbol: '\u314a', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[5,6])}, //*ㅊ
-        {symbol: '\u314b', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,2,4])}, //*ㅋ
-        {symbol: '\u314c', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,2,5])}, //*ㅌ
-        {symbol: '\u314d', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,4,5])}, //*ㅍ
-        {symbol: '\u314e', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,4,5])}, //*ㅎ
+        {symbol: '\u3131', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1])}, //*ㄱ
+        {symbol: '\u3134', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,5])}, //*ㄴ
+        {symbol: '\u3137', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[3,5])}, //*ㄷ
+        {symbol: '\u3139', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2])}, //*ㄹ
+        {symbol: '\u3141', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,6])}, //*ㅁ
+        {symbol: '\u3142', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,2])}, //*ㅂ
+        {symbol: '\u3145', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[3])}, //*ㅅ
+        {symbol: '\u3147', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,3,5,6])}, //*ㅇ
+        {symbol: '\u3148', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,3])}, //*ㅈ
+        {symbol: '\u314a', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,3])}, //*ㅊ
+        {symbol: '\u314b', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,3,5])}, //*ㅋ
+        {symbol: '\u314c', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,3,6])}, //*ㅌ
+        {symbol: '\u314d', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,5,6])}, //*ㅍ
+        {symbol: '\u314e', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[3,5,6])}, //*ㅎ
         {symbol: '\u314f', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,2,6])}, //*ㅏ
         {symbol: '\u3151', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[3,4,5])}, //*ㅑ
         {symbol: '\u3153', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,3,4])}, //*ㅓ

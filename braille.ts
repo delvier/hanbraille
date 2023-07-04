@@ -6,10 +6,95 @@ export type Rule = {
     condition?: boolean;
 };
 export class Braille {
-    constructor(asciiMode: boolean = false) {
-        this.asciiMode = asciiMode;
+    constructor() {
     }
-    asciiMode: boolean = false;
+    static standalone_prec: RegExp = new RegExp(/(^|\s|\p{Pd}|\p{Ps}|\p{Pi})$/gu);
+    static standalone_foll: RegExp = new RegExp(/\s|\p{Pd}|[,;:.!?]|\p{Pe}|\p{Pf}|$/gu);
+    ToBrai(input: string, width: number = 0): string {
+        let d: string = input.normalize('NFD'); //detaching diacritics
+        let o: string = '';
+        let p: string = ' ';
+        let linePos: number = 0;
+        let isNumeric: boolean = false;
+        let isCapital: boolean = false;
+        let isCapSeq: boolean = false;
+        let prohibitContract: boolean = false;
+        if (!isNumeric && d.match(/^[0-9]/gu)) {
+            //Enabling numeric mode in front of digits
+            isNumeric = true;
+            o += Braille.DotsToUni(3,4,5,6);
+        }
+        else if (isNumeric && d.match(/^[^0-9.,]/gu)) {
+            //Disabling numeric mode after non-digit appears
+            isNumeric = false;
+            if (d.match(/^[a-j.,]/gu)) {
+                //force grade 1 mode to avoid confusion
+                o += Braille.DotsToUni(5,6);
+            }
+        }
+        else if (!isCapital && d.match(/^\p{Lu}+/gu)) {
+            isCapital = true;
+            isCapSeq = false;
+            o += Braille.BraiToUCS([6],[6]);
+        }
+        else if (!isCapital && d.match(/^\p{Lu}/gu)) {
+            o += Braille.BraiToUCS([6]);
+        }
+        else if (isCapital && isCapSeq && d.match(/^[^\s\p{Lu}]/gu)) {
+            isCapital = false;
+            isCapSeq = false;
+            o += Braille.BraiToUCS([6],[3]);
+        }
+        else if (isCapital && !isCapSeq && d.match(/^[^\p{Lu}]/gu)) {
+            isCapital = false;
+        }
+        /* Actual conversion */
+        if (d[0].match(/^\n/)) {
+            o += '\n';
+            p = d[0];
+            d = d.slice(1);
+        }
+        else if (d[0].match(/^\s/gu)) {
+            o += Braille.DotsToUni(0);
+            p = d[0];
+            d = d.slice(1);
+        }
+        if (true) UEBExit: {
+            if (!prohibitContract) {
+                for (const x of this.UEB2) {
+                    let regexp: RegExp;
+                    if (typeof(x.after) == 'string') {
+                        regexp = new RegExp('^' + x.symbol + '(?=' + x.after + ')', 'gu');
+                    } else if (typeof(x.after) == 'object') { //RegExp
+                        regexp = new RegExp('^' + x.symbol + '(?=' + x.after.source + ')', 'gu');
+                    } else {
+                        regexp = new RegExp('^' + x.symbol, 'gu');
+                    }
+                    if (regexp.test(d)
+                    && (x.condition === undefined || x.condition)
+                    && (x.before === undefined || x.before.test(p))) {
+                        o += x.braille;
+                        p = d.slice(0, regexp.lastIndex);
+                        d = d.slice(regexp.lastIndex);
+                        break UEBExit;
+                    }
+                }
+            }
+            for (const x of this.UEB) {
+                let regexp = new RegExp('^' + x.symbol, 'gu');
+                if (regexp.test(d.toLowerCase()) && (x.condition || x.condition === undefined)) {
+                    o += x.braille;
+                    p = d.slice(0, regexp.lastIndex);
+                    d = d.slice(regexp.lastIndex);
+                    prohibitContract = false;
+                    break UEBExit;
+                }
+            }
+            console.log(`Skipping ${d[0]}...`);
+            d = d.slice(1);
+        }
+        return o;
+    }
     static BraiToUCS(...lists: number[][]): string {
         let o: string = ""
         for (let i of lists) {
@@ -37,7 +122,7 @@ export class Braille {
         }
         return o;
     }
-    static BraiUCSToASCII(i: string): string {
+    BraiUCSToASCII(i: string): string {
         let o: string = ""
         for (let j of [...i]) {
             o += new Braille().Ascii.get(j);
@@ -46,36 +131,114 @@ export class Braille {
     }
     readonly UEB2: Rule[] = [
         //condition is rather complex, how to compromise
-        {symbol: 'but', braille: Braille.DotsToUni(1,2)},
-        {symbol: 'can', braille: Braille.DotsToUni(1,4)},
-        {symbol: 'do', braille: Braille.DotsToUni(1,4,5)},
-        {symbol: 'every', braille: Braille.DotsToUni(1,5)},
-        {symbol: 'from', braille: Braille.DotsToUni(1,2,4)},
-        {symbol: 'go', braille: Braille.DotsToUni(1,2,4,5)},
-        {symbol: 'have', braille: Braille.DotsToUni(1,2,5)},
-        {symbol: 'just', braille: Braille.DotsToUni(2,4,5)},
-        {symbol: 'knowledge', braille: Braille.DotsToUni(1,3)},
-        {symbol: 'like', braille: Braille.DotsToUni(1,2,3)},
-        {symbol: 'more', braille: Braille.DotsToUni(1,3,4)},
-        {symbol: 'not', braille: Braille.DotsToUni(1,3,4,5)},
-        {symbol: 'people', braille: Braille.DotsToUni(1,2,3,4)},
-        {symbol: 'quite', braille: Braille.DotsToUni(1,2,3,4,5)},
-        {symbol: 'rather', braille: Braille.DotsToUni(1,2,3,5)},
-        {symbol: 'so', braille: Braille.DotsToUni(2,3,4)},
-        {symbol: 'that', braille: Braille.DotsToUni(2,3,4,5)},
-        {symbol: 'us', braille: Braille.DotsToUni(1,3,6)},
-        {symbol: 'very', braille: Braille.DotsToUni(1,2,3,6)},
-        {symbol: 'will', braille: Braille.DotsToUni(2,4,5,6)},
-        {symbol: 'it', braille: Braille.DotsToUni(1,3,4,6)},
-        {symbol: 'you', braille: Braille.DotsToUni(1,3,4,5,6)},
-        {symbol: 'as', braille: Braille.DotsToUni(1,3,5,6)},
+        {symbol: 'but', braille: Braille.DotsToUni(1,2), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'can', braille: Braille.DotsToUni(1,4), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'do', braille: Braille.DotsToUni(1,4,5), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'every', braille: Braille.DotsToUni(1,5), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'from', braille: Braille.DotsToUni(1,2,4), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'go', braille: Braille.DotsToUni(1,2,4,5), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'have', braille: Braille.DotsToUni(1,2,5), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'just', braille: Braille.DotsToUni(2,4,5), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'knowledge', braille: Braille.DotsToUni(1,3), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'like', braille: Braille.DotsToUni(1,2,3), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'more', braille: Braille.DotsToUni(1,3,4), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'not', braille: Braille.DotsToUni(1,3,4,5), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'people', braille: Braille.DotsToUni(1,2,3,4), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'quite', braille: Braille.DotsToUni(1,2,3,4,5), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'rather', braille: Braille.DotsToUni(1,2,3,5), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'so', braille: Braille.DotsToUni(2,3,4), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'that', braille: Braille.DotsToUni(2,3,4,5), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'us', braille: Braille.DotsToUni(1,3,6), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'very', braille: Braille.DotsToUni(1,2,3,6), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'will', braille: Braille.DotsToUni(2,4,5,6), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'it', braille: Braille.DotsToUni(1,3,4,6), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'you', braille: Braille.DotsToUni(1,3,4,5,6), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'as', braille: Braille.DotsToUni(1,3,5,6), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'child', braille: Braille.DotsToUni(1,6), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'shall', braille: Braille.DotsToUni(1,4,6), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'this', braille: Braille.DotsToUni(1,4,5,6), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'which', braille: Braille.DotsToUni(1,5,6), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'out', braille: Braille.DotsToUni(1,2,5,6), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'still', braille: Braille.DotsToUni(3,4), before: Braille.standalone_prec, after: Braille.standalone_foll},
         //
-        {symbol: 'child', braille: Braille.DotsToUni(1,6)},
-        {symbol: 'shall', braille: Braille.DotsToUni(1,4,6)},
-        {symbol: 'this', braille: Braille.DotsToUni(1,4,5,6)},
-        {symbol: 'which', braille: Braille.DotsToUni(1,5,6)},
-        {symbol: 'out', braille: Braille.DotsToUni(1,2,5,6)},
-        {symbol: 'still', braille: Braille.DotsToUni(3,4)},
+        {symbol: 'about', braille: Braille.BraiToUCS([1],[1,2]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'above', braille: Braille.BraiToUCS([1],[1,2],[1,2,3,6]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'according', braille: Braille.BraiToUCS([1],[1,4]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'across', braille: Braille.BraiToUCS([1],[1,4],[1,2,3,5]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'after', braille: Braille.BraiToUCS([1],[1,2,4]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'afternoon', braille: Braille.BraiToUCS([1],[1,2,4],[1,3,4,5]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'afterward', braille: Braille.BraiToUCS([1],[1,2,4],[2,4,5,6]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'again', braille: Braille.BraiToUCS([1],[1,2,4,5]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'against', braille: Braille.BraiToUCS([1],[1,2,4,5],[3,4]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'also', braille: Braille.BraiToUCS([1],[1,2,3]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'almost', braille: Braille.BraiToUCS([1],[1,2,3],[1,3,4]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'already', braille: Braille.BraiToUCS([1],[1,2,3],[1,2,3,5]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'altogether', braille: Braille.BraiToUCS([1],[1,2,3],[2,3,4,5]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'although', braille: Braille.BraiToUCS([1],[1,2,3],[1,4,5,6]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'always', braille: Braille.BraiToUCS([1],[1,2,3],[2,4,5,6]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'blind', braille: Braille.BraiToUCS([1,2],[1,2,3]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'braille', braille: Braille.BraiToUCS([1,2],[1,2,3,5],[1,2,3]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'could', braille: Braille.BraiToUCS([1,4],[1,4,5]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'declare', braille: Braille.BraiToUCS([1,4,5],[1,4],[1,2,3]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'declaring', braille: Braille.BraiToUCS([1,4,5],[1,4],[1,2,3],[1,2,4,5]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'deceive', braille: Braille.BraiToUCS([1,4,5],[1,4],[1,2,3,6]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'deceiving', braille: Braille.BraiToUCS([1,4,5],[1,4],[1,2,3,6],[1,2,4,5]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'either', braille: Braille.BraiToUCS([1,5],[2,4]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'friend', braille: Braille.BraiToUCS([1,2,4],[1,2,3,5]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'first', braille: Braille.BraiToUCS([1,2,4],[3,4]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'good', braille: Braille.BraiToUCS([1,2,4,5],[1,4,5]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'great', braille: Braille.BraiToUCS([1,2,4,5],[1,2,3,5],[2,3,4,5]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'him', braille: Braille.BraiToUCS([1,2,5],[1,3,4]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'himself', braille: Braille.BraiToUCS([1,2,5],[1,3,4],[1,2,4]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'herself', braille: Braille.BraiToUCS([1,2,5],[1,2,4,5,6],[1,2,4]), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        //
+        {symbol: 'upon', braille: Braille.BraiToUCS([4,5],[1,3,6])},
+        {symbol: 'these', braille: Braille.BraiToUCS([4,5],[2,3,4,6])},
+        {symbol: 'those', braille: Braille.BraiToUCS([4,5],[1,4,5,6])},
+        {symbol: 'whose', braille: Braille.BraiToUCS([4,5],[1,5,6])},
+        {symbol: 'word', braille: Braille.BraiToUCS([4,5],[2,4,5,6])},
+        {symbol: 'cannot', braille: Braille.BraiToUCS([4,5,6],[1,4])},
+        {symbol: 'had', braille: Braille.BraiToUCS([4,5,6],[1,2,5])},
+        {symbol: 'many', braille: Braille.BraiToUCS([4,5,6],[1,3,4])},
+        {symbol: 'spirit', braille: Braille.BraiToUCS([4,5,6],[2,3,4])},
+        {symbol: 'their', braille: Braille.BraiToUCS([4,5,6],[2,3,4,6])},
+        {symbol: 'world', braille: Braille.BraiToUCS([4,5,6],[2,4,5,6])},
+        {symbol: 'day', braille: Braille.BraiToUCS([5],[1,4,5])},
+        {symbol: 'ever', braille: Braille.BraiToUCS([5],[1,5]), before: /[^EIei]$/gu},
+        {symbol: 'father', braille: Braille.BraiToUCS([5],[1,2,4])},
+        {symbol: 'here', braille: Braille.BraiToUCS([5],[1,2,5])},
+        {symbol: 'know', braille: Braille.BraiToUCS([5],[1,3])},
+        {symbol: 'lord', braille: Braille.BraiToUCS([5],[1,2,3])},
+        {symbol: 'mother', braille: Braille.BraiToUCS([5],[1,3,4])},
+        {symbol: 'name', braille: Braille.BraiToUCS([5],[1,3,4,5])},
+        {symbol: 'one', braille: Braille.BraiToUCS([5],[1,3,5]), before: /[^Oo]$/gu},
+        {symbol: 'part', braille: Braille.BraiToUCS([5],[1,2,3,4])},
+        {symbol: 'question', braille: Braille.BraiToUCS([5],[1,2,3,4,5])},
+        {symbol: 'right', braille: Braille.BraiToUCS([5],[1,2,3,5])},
+        {symbol: 'some', braille: Braille.BraiToUCS([5],[2,3,4]), after: /[^dD]/gu},
+        {symbol: 'time', braille: Braille.BraiToUCS([5],[2,3,4,5])},
+        {symbol: 'under', braille: Braille.BraiToUCS([5],[1,3,6]), before: /[^AOao]$/gu},
+        {symbol: 'young', braille: Braille.BraiToUCS([5],[1,3,4,5,6])},
+        {symbol: 'there', braille: Braille.BraiToUCS([5],[2,3,4,6])},
+        {symbol: 'character', braille: Braille.BraiToUCS([5],[1,6])},
+        {symbol: 'through', braille: Braille.BraiToUCS([5],[1,4,5,6])},
+        {symbol: 'where', braille: Braille.BraiToUCS([5],[1,5,6])},
+        {symbol: 'ought', braille: Braille.BraiToUCS([5],[1,2,5,6])},
+        {symbol: 'work', braille: Braille.BraiToUCS([5],[2,4,5,6])},
+        //
+        {symbol: 'ound', braille: Braille.BraiToUCS([4,6],[1,4,5]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
+        {symbol: 'ance', braille: Braille.BraiToUCS([4,6],[1,5]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
+        {symbol: 'sion', braille: Braille.BraiToUCS([4,6],[1,3,4,5]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
+        {symbol: 'less', braille: Braille.BraiToUCS([4,6],[2,3,4]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
+        {symbol: 'ount', braille: Braille.BraiToUCS([4,6],[2,3,4,5]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
+        {symbol: 'ence', braille: Braille.BraiToUCS([5,6],[1,5]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
+        {symbol: 'ong', braille: Braille.BraiToUCS([5,6],[1,2,4,5]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
+        {symbol: 'ful', braille: Braille.BraiToUCS([5,6],[1,2,3]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
+        {symbol: 'tion', braille: Braille.BraiToUCS([5,6],[1,3,4,5]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
+        {symbol: 'ness', braille: Braille.BraiToUCS([5,6],[2,3,4]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
+        {symbol: 'ment', braille: Braille.BraiToUCS([5,6],[2,3,4,5]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
+        {symbol: 'ity', braille: Braille.BraiToUCS([5,6],[1,3,4,5,6]), before: /[A-Za-z]$/gu, after: Braille.standalone_foll},
+        //
         {symbol: 'and', braille: Braille.DotsToUni(1,2,3,5,6)},
         {symbol: 'for', braille: Braille.DotsToUni(1,2,3,4,5,6)},
         {symbol: 'of', braille: Braille.DotsToUni(1,2,3,5,6)},
@@ -92,23 +255,23 @@ export class Braille {
         {symbol: 'ou', braille: Braille.DotsToUni(1,2,5,6)},
         {symbol: 'ow', braille: Braille.DotsToUni(2,4,6)},
         {symbol: 'st', braille: Braille.DotsToUni(3,4)},
-        {symbol: 'ing', braille: Braille.DotsToUni(3,4,6)},
+        {symbol: 'ing', braille: Braille.DotsToUni(3,4,6), before: Braille.standalone_prec},
         {symbol: 'ar', braille: Braille.DotsToUni(3,4,5)},
         //
-        {symbol: 'be', braille: Braille.DotsToUni(2,3)},
-        {symbol: 'enough', braille: Braille.DotsToUni(2,6)},
-        {symbol: 'were', braille: Braille.DotsToUni(2,3,5,6)},
-        {symbol: 'his', braille: Braille.DotsToUni(2,3,6)},
+        {symbol: 'be', braille: Braille.DotsToUni(2,3), before: /(^|\s|\p{Ps})$/gu, after: /\s|\p{Pe}|$/gu},
+        {symbol: 'enough', braille: Braille.DotsToUni(2,6), before: Braille.standalone_prec, after: Braille.standalone_foll},
+        {symbol: 'were', braille: Braille.DotsToUni(2,3,5,6), before: /(^|\s|\p{Ps})$/gu, after: /\s|\p{Pe}|$/gu},
+        {symbol: 'his', braille: Braille.DotsToUni(2,3,6), before: /(^|\s|\p{Ps})$/gu, after: /\s|\p{Pe}|$/gu},
         {symbol: 'in', braille: Braille.DotsToUni(3,5)},
-        {symbol: 'was', braille: Braille.DotsToUni(3,5,6)},
-        {symbol: 'ea', braille: Braille.DotsToUni(2)},
-        {symbol: 'bb', braille: Braille.DotsToUni(2,3)},
-        {symbol: 'con', braille: Braille.DotsToUni(2,5)},
-        {symbol: 'cc', braille: Braille.DotsToUni(2,5)},
-        {symbol: 'dis', braille: Braille.DotsToUni(2,5,6)},
+        {symbol: 'was', braille: Braille.DotsToUni(3,5,6), before: /(^|\s|\p{Ps})$/gu, after: /\s|\p{Pe}|$/gu},
+        {symbol: 'ea', braille: Braille.DotsToUni(2), before: /[A-Za-z]$/gu, after: /[A-Za-z]/gu},
+        {symbol: 'bb', braille: Braille.DotsToUni(2,3), before: /[A-Za-z]$/gu, after: /[A-Za-z]/gu},
+        {symbol: 'con', braille: Braille.DotsToUni(2,5), condition: false},
+        {symbol: 'cc', braille: Braille.DotsToUni(2,5), before: /[A-Za-z]$/gu, after: /[A-Za-z]/gu},
+        {symbol: 'dis', braille: Braille.DotsToUni(2,5,6), condition: false},
         {symbol: 'en', braille: Braille.DotsToUni(2,6)},
-        {symbol: 'ff', braille: Braille.DotsToUni(2,3,5)},
-        {symbol: 'gg', braille: Braille.DotsToUni(2,3,5,6)},
+        {symbol: 'ff', braille: Braille.DotsToUni(2,3,5), before: /[A-Za-z]$/gu, after: /[A-Za-z]/gu},
+        {symbol: 'gg', braille: Braille.DotsToUni(2,3,5,6), before: /[A-Za-z]$/gu, after: /[A-Za-z]/gu},
         {symbol: 'in', braille: Braille.DotsToUni(3,5)},
     ]
     readonly UEB: Rule[] = [
