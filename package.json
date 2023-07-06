@@ -5,7 +5,8 @@
   "main": "out/exec.js",
   "scripts": {
     "test": "node out/exec.js",
-    "build": "npm i && tsc"
+    "build": "npm i && tsc",
+    "deploy": "npx gh-pages -d dist"
   },
   "repository": {
     "type": "git",
@@ -23,10 +24,11 @@
   "bin": {
     "hanbraille": "out/exec.js"
   },
-  "dependencies": {
-  },
   "devDependencies": {
-    "typescript": "^5.1.3",
-    "@types/node": "^20.3.1"
+    "@types/node": "^20.3.1",
+    "typescript": "^5.1.3"
+  },
+  "targets": {
+    "main": false
   }
 }
