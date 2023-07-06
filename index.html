@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>HanBraille</title>
+    </head>
+    <body>
+        <h1>HanBraille</h1>
+        <textarea id="han" name="han" maxlength="2048" cols="36" rows="8" placeholder="다람쥐 헌 쳇바퀴에 타고파"></textarea>
+        <textarea id="brl" name="brl" cols="36" rows="8" readonly placeholder="-"></textarea>
+        <a href="https://github.com/delvier/hanbraille">Repository</a>
+        <script type="module">
+            import { HanBraille } from './hanbraille.js';
+            var han = window.document.getElementById("han");
+            var brl = window.document.getElementById("brl");
+            brl.placeholder = new HanBraille().HangBrai(han.placeholder);
+            han.addEventListener('input', han2brl);
+            function han2brl(x) {
+                var hanbraille = new HanBraille();
+                var q = hanbraille.HangBrai(han.value);
+                brl.value = q;
+                console.log(`"${han.value}" > "${q}"`);
+                for (y in han.value) {
+                    console.log(han.value.codePointAt(y));
+                }
+            }
+        </script>
+    </body>
+</html>
