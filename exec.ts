@@ -5,20 +5,40 @@ import { HanBraille } from "./hanbraille";
 
 let help: string = 
 `HanBraille - Hangul Braille Converter
-Usage: hanbraille [-a] "Some string"
--a: prints results as Braille ASCII. Compatible with BRF.
+Usage: hanbraille [-a] [-i] [-q] "Some string"
+  -a    print results as Braille ASCII
+  -i    consider isolated vowel 'i' as grammatical particles, rather than jamo themselves
+  -q    consider final 'ieung' as null symbols
 `;
 
-if (process.stdin.isTTY && process.argv.length < 3) {
+let args: string[] = process.argv.slice(2);
+
+if (process.stdin.isTTY && args.length < 1) {
     console.log(help);
     process.exit(1);
 }
 let ascii: boolean = false;
-if (process.argv.includes("-a")) {
-    ascii = true;
+let text = '';
+let u11bc_null = false;
+let u3163_isolate = false;
+for (let q of args) {
+    if (q === '-a') {
+        ascii = true;
+    }
+    else if (q === '-q') {
+        u11bc_null = true;
+    }
+    else if (q === '-i') {
+        u3163_isolate = true;
+    }
+    else if (text === '') {
+        text = '' + q;
+    }
+    else {
+        text = text.concat(' ', q);
+    }
 }
-var hanbraille = new HanBraille(ascii);
-let text = process.argv[process.argv.length - 1] ?? "다람쥐 헌 쳇바퀴에 타고파";
+var hanbraille = new HanBraille(u11bc_null, u3163_isolate);
 if (!process.stdin.isTTY) {
     process.stdin.setEncoding('utf8');
     process.stdin.on('data', (chunk) => {

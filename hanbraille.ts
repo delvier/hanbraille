@@ -1,12 +1,18 @@
 import { Braille, Rule } from "./braille";
 export class HanBraille extends Braille {
+    private _u11bc_null: boolean;
+    private _u3163_isolate: boolean;
     constructor(u11bc_null: boolean = false, u3163_isolate: boolean = false) {
         super();
-        this.u11bc_null = u11bc_null;
-        this.u3163_isolate = u3163_isolate;
+        this._u11bc_null = u11bc_null;
+        this._u3163_isolate = u3163_isolate;
     }
-    u11bc_null: boolean = false;
-    u3163_isolate: boolean = false;
+    public get u11bc_null() {
+        return this._u11bc_null;
+    }
+    public get u3163_isolate() {
+        return this._u3163_isolate;
+    }
     HangBrai(hang: string, width: number = 0): string {
         let d: string = hang.normalize('NFD');
         let o: string = '';
@@ -14,7 +20,7 @@ export class HanBraille extends Braille {
         let linePos: number = 0;
         let isNumeric: boolean = false;
         let prohibitContract: boolean = false;
-        const UEBDetect = /^[A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9](([0-9A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]|\p{P}|\s)*([0-9A-Za-z@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]|\p{P}))?/gu;
+        const UEBDetect = /^[\p{Lu}\p{Ll}@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9](([0-9\p{Lu}\p{Ll}@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]|\p{P}|\p{Lm}|\p{Mn}|\s)*([0-9\p{Lu}\p{Ll}@#^&\u0391-\u03a1\u03a3-\u03a9\u03b1-\u03c9]|\p{P}|\p{Lm}|\p{Mn}))?/gu;
         while (d !== '') {
             /* Code switching */
             if (!isNumeric && d.match(/^[0-9]/gu)) {
@@ -26,9 +32,9 @@ export class HanBraille extends Braille {
                 var q = d.slice(0, UEBDetect.lastIndex);
                 d = d.slice(UEBDetect.lastIndex);
                 o += HanBraille.DotsToUni(3,5,6);
-                q = this.UnifiedBrai(q);
+                q = this.UnifiedBrl(q);
                 q = q.replace(/\u2820\u2804$/gu, ''); //remove capital terminator
-                o += this.UnifiedBrai(q);
+                o += this.UnifiedBrl(q);
                 o += HanBraille.DotsToUni(2,5,6);
             }
             else if (isNumeric && d.match(/^[^0-9.,~\-]/gu)) {
@@ -307,8 +313,8 @@ export class HanBraille extends Braille {
         {symbol: '\u11b9', braille: HanBraille.BraiToUCS([1,2], [3])}, //-ㅄ
         {symbol: '\u11ba', braille: HanBraille.DotsToUni(3)}, //-ㅅ
         {symbol: '\u11bb', braille: HanBraille.DotsToUni(3,4)}, //-ㅆ*
-        {symbol: '\u11bc', braille: HanBraille.BraiToUCS([5],[2,3,5,6]), condition: false},
-        {symbol: '\u11bc', braille: HanBraille.DotsToUni(2,3,5,6)}, //-ㅇ: second candidate is for historical null sound jongseong (T)
+        {symbol: '\u11bc', braille: HanBraille.BraiToUCS([5],[2,3,5,6]), condition: this.u11bc_null}, //historical null sound jongseong (T)
+        {symbol: '\u11bc', braille: HanBraille.DotsToUni(2,3,5,6)}, //-ㅇ
         {symbol: '\u11bd', braille: HanBraille.DotsToUni(1,3)}, //-ㅈ
         {symbol: '\u11be', braille: HanBraille.DotsToUni(2,3)}, //-ㅊ
         {symbol: '\u11bf', braille: HanBraille.DotsToUni(2,3,5)}, //-ㅋ
@@ -341,9 +347,9 @@ export class HanBraille extends Braille {
         {symbol: '\u315c', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,3,4])}, //*ㅜ
         {symbol: '\u3160', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,4,6])}, //*ㅠ
         {symbol: '\u3161', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,4,6])}, //*ㅡ
-        {symbol: '\u3163', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,4,6])}, //*ㅡ
-        {symbol: '\u3163', braille: HanBraille.BraiToUCS([4,5,6],[1,3,5]), condition: this.u3163_isolate},
-        {symbol: '\u3163', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,3,5])}, //*ㅣ: second candidate is for isolated ㅣ
+        {symbol: '\u3162', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[2,4,5,6])}, //*ㅢ
+        {symbol: '\u3163', braille: HanBraille.BraiToUCS([4,5,6],[1,3,5]), condition: this.u3163_isolate}, //*isolated ㅣ
+        {symbol: '\u3163', braille: HanBraille.BraiToUCS([1,2,3,4,5,6],[1,3,5])}, //*ㅣ
         //제8절
         ////Todo: 제23항
         ////제19항
