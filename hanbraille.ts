@@ -154,11 +154,11 @@ export class HanBraille extends Braille {
         {symbol: '정'.normalize('NFD'), braille: HanBraille.BraiToUCS([4,6],[1,2,4,5,6])}, //정
         {symbol: '쩡'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[4,6],[1,2,4,5,6])}, //쩡
         {symbol: '청'.normalize('NFD'), braille: HanBraille.BraiToUCS([5,6],[1,2,4,5,6])}, //청
-        {symbol: '셩'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[1,5,6],[3,4,5,6])}, //셩
-        {symbol: '쎵'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[6],[1,5,6],[3,4,5,6])}, //쎵
-        {symbol: '졍'.normalize('NFD'), braille: HanBraille.BraiToUCS([4,6],[1,5,6],[3,4,5,6])}, //졍
-        {symbol: '쪙'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[4,6],[1,5,6],[3,4,5,6])}, //쪙
-        {symbol: '쳥'.normalize('NFD'), braille: HanBraille.BraiToUCS([5,6],[1,5,6],[3,4,5,6])}, //쳥
+        {symbol: '셩'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[1,5,6],[2,3,5,6])}, //셩
+        {symbol: '쎵'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[6],[1,5,6],[2,3,5,6])}, //쎵
+        {symbol: '졍'.normalize('NFD'), braille: HanBraille.BraiToUCS([4,6],[1,5,6],[2,3,5,6])}, //졍
+        {symbol: '쪙'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[4,6],[1,5,6],[2,3,5,6])}, //쪙
+        {symbol: '쳥'.normalize('NFD'), braille: HanBraille.BraiToUCS([5,6],[1,5,6],[2,3,5,6])}, //쳥
         ////12~15항
         {symbol: '가'.normalize('NFD'), braille: HanBraille.DotsToUni(1,2,4,6)}, //가
         {symbol: '까'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[1,2,4,6])}, //까
