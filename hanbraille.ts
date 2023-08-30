@@ -1,17 +1,11 @@
 import { Braille, Rule } from "./braille";
 export class HanBraille extends Braille {
-    private _u11bc_null: boolean;
-    private _u3163_isolate: boolean;
+    private u11bc_null: boolean;
+    private u3163_isolate: boolean;
     constructor(u11bc_null: boolean = false, u3163_isolate: boolean = false) {
         super();
-        this._u11bc_null = u11bc_null;
-        this._u3163_isolate = u3163_isolate;
-    }
-    public get u11bc_null() {
-        return this._u11bc_null;
-    }
-    public get u3163_isolate() {
-        return this._u3163_isolate;
+        this.u11bc_null = u11bc_null;
+        this.u3163_isolate = u3163_isolate;
     }
     HangBrai(hang: string, width: number = 0): string {
         let d: string = hang.normalize('NFD');
@@ -74,7 +68,7 @@ export class HanBraille extends Braille {
                     }
                 }
                 if (!prohibitContract) {
-                    for (const x of this.#hanMappingContract) {
+                    for (const x of this.#hanMappingContract()) {
                         let regexp: RegExp;
                         if (typeof(x.after) == 'object') { //RegExp
                             regexp = new RegExp('^' + x.symbol + '(?=' + x.after.source + ')', 'gu');
@@ -91,7 +85,7 @@ export class HanBraille extends Braille {
                         }
                     }
                 }
-                for (const x of this.#hanMapping) {
+                for (const x of this.#hanMapping()) {
                     let regexp = new RegExp('^' + x.symbol, 'gu');
                     if (regexp.test(d) && (x.condition || x.condition === undefined)) {
                         o += x.braille;
@@ -108,7 +102,7 @@ export class HanBraille extends Braille {
         }
         return o;
     }
-    readonly #hanMappingAntiCollision: Rule[] = [
+    #hanMappingAntiCollision: Rule[] = [
         //제5절: Vowel chain
         {symbol: '', braille: HanBraille.DotsToUni(3,6), before: /[\u1161-\u11a7]/gu, after: /^\u110b\u1168/gu}, //(V)예: 제10항
         {symbol: '', braille: HanBraille.DotsToUni(3,6), before: /[\u1163\u116a\u116e\u116f]/gu, after: /^\u110b\u1162/gu}, //([ㅑㅘㅜㅝ])애: 제11항
@@ -120,7 +114,7 @@ export class HanBraille extends Braille {
         //number before ㄴㄷㅁㅋㅌㅍㅎ운
         {symbol: '', braille: HanBraille.DotsToUni(0), before: /[0-9]/gu, after: /^([\u1102\u1103\u1106\u110f-\u1112]|\u110b\u116e\u11ab)/gu},
     ];
-    readonly #hanMappingContract: Rule[] = [
+    #hanMappingContract(): Rule[] {return [
         /* Special cases */
         //제52~58항: opening and closing
         //{symbol: '"(.*)"', braille: HanBraille.DotsToUni(2,3,6) + '$1' + HanBraille.DotsToUni(3,5,6)},
@@ -149,16 +143,16 @@ export class HanBraille extends Braille {
         {symbol: '하\u110b'.normalize('NFD'), braille: HanBraille.BraiToUCS([2,4,5],[1,2,6])}, //하ㅇ
         {symbol: '팠'.normalize('NFD'), braille: HanBraille.BraiToUCS([1,4,5],[1,2,6],[3,4])}, //팠
         ////16항: exceptional shorthands
-        {symbol: '성'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[1,2,4,5,6])}, //성
-        {symbol: '썽'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[6],[1,2,4,5,6])}, //썽
-        {symbol: '정'.normalize('NFD'), braille: HanBraille.BraiToUCS([4,6],[1,2,4,5,6])}, //정
-        {symbol: '쩡'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[4,6],[1,2,4,5,6])}, //쩡
-        {symbol: '청'.normalize('NFD'), braille: HanBraille.BraiToUCS([5,6],[1,2,4,5,6])}, //청
-        {symbol: '셩'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[1,5,6],[2,3,5,6])}, //셩
-        {symbol: '쎵'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[6],[1,5,6],[2,3,5,6])}, //쎵
-        {symbol: '졍'.normalize('NFD'), braille: HanBraille.BraiToUCS([4,6],[1,5,6],[2,3,5,6])}, //졍
-        {symbol: '쪙'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[4,6],[1,5,6],[2,3,5,6])}, //쪙
-        {symbol: '쳥'.normalize('NFD'), braille: HanBraille.BraiToUCS([5,6],[1,5,6],[2,3,5,6])}, //쳥
+        {symbol: '성'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[1,2,4,5,6]), condition: !this.u11bc_null}, //성
+        {symbol: '썽'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[6],[1,2,4,5,6]), condition: !this.u11bc_null}, //썽
+        {symbol: '정'.normalize('NFD'), braille: HanBraille.BraiToUCS([4,6],[1,2,4,5,6]), condition: !this.u11bc_null}, //정
+        {symbol: '쩡'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[4,6],[1,2,4,5,6]), condition: !this.u11bc_null}, //쩡
+        {symbol: '청'.normalize('NFD'), braille: HanBraille.BraiToUCS([5,6],[1,2,4,5,6]), condition: !this.u11bc_null}, //청
+        {symbol: '셩'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[1,5,6],[2,3,5,6]), condition: !this.u11bc_null}, //셩
+        {symbol: '쎵'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[6],[1,5,6],[2,3,5,6]), condition: !this.u11bc_null}, //쎵
+        {symbol: '졍'.normalize('NFD'), braille: HanBraille.BraiToUCS([4,6],[1,5,6],[2,3,5,6]), condition: !this.u11bc_null}, //졍
+        {symbol: '쪙'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[4,6],[1,5,6],[2,3,5,6]), condition: !this.u11bc_null}, //쪙
+        {symbol: '쳥'.normalize('NFD'), braille: HanBraille.BraiToUCS([5,6],[1,5,6],[2,3,5,6]), condition: !this.u11bc_null}, //쳥
         ////12~15항
         {symbol: '가'.normalize('NFD'), braille: HanBraille.DotsToUni(1,2,4,6)}, //가
         {symbol: '까'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[1,2,4,6])}, //까
@@ -201,14 +195,14 @@ export class HanBraille extends Braille {
         {symbol: '\u1167\u11b4', braille: HanBraille.BraiToUCS([1,2,5,6],[2,3,6])}, //ᅟᅧᆴ
         {symbol: '\u1167\u11b5', braille: HanBraille.BraiToUCS([1,2,5,6],[2,5,6])}, //ᅟᅧᆵ
         {symbol: '\u1167\u11b6', braille: HanBraille.BraiToUCS([1,2,5,6],[3,5,6])}, //ᅟᅧᆶ
-        {symbol: '\u1167\u11bc', braille: HanBraille.DotsToUni(1,2,4,5,6)}, //ᅟᅧᆼ
+        {symbol: '\u1167\u11bc', braille: HanBraille.DotsToUni(1,2,4,5,6), condition: !this.u11bc_null}, //ᅟᅧᆼ
         {symbol: '\u1169\u11a8', braille: HanBraille.DotsToUni(1,3,4,6)}, //ᅟᅩᆨ
         {symbol: '\u1169\u11a9', braille: HanBraille.BraiToUCS([1,3,4,6],[1])}, //ᅟᅩᆩ
         {symbol: '\u1169\u11aa', braille: HanBraille.BraiToUCS([1,3,4,6],[3])}, //ᅟᅩᆪ
         {symbol: '\u1169\u11ab', braille: HanBraille.DotsToUni(1,2,3,5,6)}, //ᅟᅩᆫ
         {symbol: '\u1169\u11ac', braille: HanBraille.BraiToUCS([1,2,3,5,6],[1,3])}, //ᅟᅩᆬ
         {symbol: '\u1169\u11ad', braille: HanBraille.BraiToUCS([1,2,3,5,6],[3,5,6])}, //ᅟᅩᆭ
-        {symbol: '\u1169\u11bc', braille: HanBraille.DotsToUni(1,2,3,4,5,6)}, //ᅟᅩᆼ
+        {symbol: '\u1169\u11bc', braille: HanBraille.DotsToUni(1,2,3,4,5,6), condition: !this.u11bc_null}, //ᅟᅩᆼ
         {symbol: '\u116e\u11ab', braille: HanBraille.DotsToUni(1,2,4,5)}, //ᅟᅮᆫ
         {symbol: '\u116e\u11ac', braille: HanBraille.BraiToUCS([1,2,4,5],[1,3])}, //ᅟᅮᆬ
         {symbol: '\u116e\u11ad', braille: HanBraille.BraiToUCS([1,2,4,5],[3,5,6])}, //ᅟᅮᆭ
@@ -236,8 +230,8 @@ export class HanBraille extends Braille {
         {symbol: '\u1175\u11ad', braille: HanBraille.BraiToUCS([1,2,3,4,5],[3,5,6])}, //ᅟᅵᆭ
         {symbol: '것'.normalize('NFD'), braille: HanBraille.BraiToUCS([4,5,6],[2,3,4])}, //것
         {symbol: '껏'.normalize('NFD'), braille: HanBraille.BraiToUCS([6],[4,5,6],[2,3,4])}, //껏
-    ];
-    readonly #hanMapping: Rule[] = [
+    ]};
+    #hanMapping(): Rule[] {return [
         //Numeric
         {symbol: '0', braille: Braille.DotsToUni(2,4,5)},
         {symbol: '1', braille: Braille.DotsToUni(1)},
@@ -453,5 +447,5 @@ export class HanBraille extends Braille {
         {symbol: '€', braille: HanBraille.BraiToUCS([4],[1,5])},
         {symbol: '\u302e', braille: ''},
         {symbol: '\u302f', braille: ''}, //discarding isolated bangjeom
-    ];
+    ]};
 }

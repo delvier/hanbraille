@@ -7,7 +7,7 @@ let help: string =
 `HanBraille - Hangul Braille Converter
 Usage: hanbraille [-a] [-i] [-q] "Some string"
   -a    print results as Braille ASCII
-  -i    consider isolated vowel 'i' as grammatical particles, rather than jamo themselves
+  -i    consider isolated vowel 'i' as postpositions, rather than jamo themselves
   -q    consider final 'ieung' as null symbols
 `;
 

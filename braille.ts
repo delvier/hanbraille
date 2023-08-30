@@ -25,7 +25,7 @@ export class Braille {
         d = d.replace(/\u2820\u2820\u2820\p{Lu}[^\p{Ll}\s]+( [^\p{Ll}\s]+){2,}/gu, '$&' + Braille.BraiToUCS([6],[3])); //Capitals terminator
         d = d.replace(/(^|[^\u2820])\u2820\u2820\p{Lu}{2,}(?=[^\p{Lu}])/gu, '$&' + Braille.BraiToUCS([6],[3])); //Capitals terminator
         d = d.replace(/(?<!\u2820\u2820[^\u2804]*)\p{Lu}(?![^\u2820]*\u2820\u2804)/gu, Braille.DotsToUni(6) + '$&'); //Single Capital
-        for (let r of this.UEB) {
+        for (let r of this.UEB()) {
             var rule: RegExp = new RegExp('(?<=' + (r.before?.source || '') + ')' + r.symbol + '(?=' + (r.after?.source || '') + ')', 'giu');
             if (rule.test(d)) {
                 d = d.replace(rule, r.braille);
@@ -67,7 +67,7 @@ export class Braille {
         }
         return o;
     }
-    readonly UEB: Rule[] = [
+    UEB(): Rule[] {return [
         //condition is rather complex, how to compromise
         //Alphabetic wordsigns
         {symbol: 'but', braille: Braille.DotsToUni(1,2), before: Braille.stdaln_prec, after: Braille.stdaln_foll},
@@ -507,7 +507,7 @@ export class Braille {
         {symbol: '\u030c', braille: Braille.BraiToUCS([4,5],[3,4,6])}, //caron
         //
         {symbol: ' ', braille: Braille.DotsToUni(0)},
-    ];
+    ]};
     readonly Ascii: Map<string, string> = new Map([
         [Braille.DotsToUni(), ' '],
         [Braille.DotsToUni(2,3,4,6), '!'],
